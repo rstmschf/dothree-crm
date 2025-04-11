@@ -3,11 +3,15 @@ from .models import Company, Contact
 
 
 class ContactSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    owner_name = serializers.ReadOnlyField(source="owner.get_full_name")
+
     class Meta:
         model = Contact
         fields = (
             "id",
             "company",
+            "company_name",
             "first_name",
             "last_name",
             "position",
@@ -17,8 +21,13 @@ class ContactSerializer(serializers.ModelSerializer):
             "owner",
             "created_at",
             "updated_at",
+            "owner_name",
         )
-        read_only_fields = ("owner", "created_at", "updated_at")
+        read_only_fields = (
+            "owner",
+            "created_at",
+            "updated_at",
+        )
 
 
 class CompanySerializer(serializers.ModelSerializer):
