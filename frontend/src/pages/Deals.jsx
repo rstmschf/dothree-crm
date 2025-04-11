@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
+import { Link } from 'react-router-dom';
 
 function Deals() {
   const [deals, setDeals] = useState([]);
@@ -191,6 +192,7 @@ function Deals() {
                     </div>
 
                     <div className="flex justify-end space-x-2 mt-2 pt-2 border-t border-base-200">
+                      <Link to={`/deals/${deal.id}`} className="btn btn-xs btn-primary btn-outline">Details</Link>
                       <button onClick={() => openEditModal(deal)} className="btn btn-xs btn-ghost">Edit</button>
                       {isAdmin && <button onClick={() => handleDelete(deal.id)} className="btn btn-xs btn-ghost text-error">Delete</button>}
                     </div>

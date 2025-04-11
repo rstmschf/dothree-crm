@@ -29,9 +29,7 @@ class Lead(models.Model):
     company = models.ForeignKey(
         Company, on_delete=models.SET_NULL, null=True, blank=True, related_name="leads"
     )
-    status = models.CharField(
-        max_length=50, default="new"
-    )
+    status = models.CharField(max_length=50, default="new")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -112,3 +110,23 @@ class ActivityLog(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+
+class Note(models.Model):
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="notes")
+    text = models.TextField(blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notes",
+    )
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Note on {self.deal.title}: {self.text[:50]}..."

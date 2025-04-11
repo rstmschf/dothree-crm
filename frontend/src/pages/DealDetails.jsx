@@ -1,0 +1,198 @@
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../api';
+
+function DealDetails() {
+  const { id } = useParams(); // Берем ID сделки из URL
+  const [deal, setDeal] = useState(null);
+  const [company, setCompany] = useState(null);
+  const [contacts, setContacts] = useState([]);
+  const [comments, setComments] = useState([]);
+
+  const [newComment, setNewComment] = useState('');
+  const textareaRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchAllDealData();
+  }, [id]);
+
+  const fetchAllDealData = async () => {
+    try {
+      // 1. Получаем саму сделку
+      const dealRes = await api.get(`sales/deals/${id}/`);
+      const dealData = dealRes.data;
+      setDeal(dealData);
+
+      // 2. Получаем комментарии к этой сделке
+      // Предполагается, что на бэкенде есть фильтрация по сделке: ?deal=id
+      const commentsRes = await api.get(`sales/notes/?deal=${id}`);
+      setComments(commentsRes.data);
+
+      // 3. Если к сделке привязана компания, подтягиваем ее данные и контакты
+      if (dealData.company) {
+        const companyRes = await api.get(`clients/companies/${dealData.company}/`);
+        setCompany(companyRes.data);
+
+        // Получаем контакты, фильтруя их по ID компании
+        const contactsRes = await api.get(`clients/contacts/?company=${dealData.company}`);
+        setContacts(contactsRes.data);
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching deal details:", err);
+      setError("Failed to load deal details.");
+      setLoading(false);
+    }
+  };
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    try {
+      const response = await api.post('sales/notes/', {
+        deal: id,
+        text: newComment,
+      });
+      setComments([response.data, ...comments]);
+      setNewComment('');
+
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
+    } catch (err) {
+      alert("Failed to add comment.");
+    }
+  };
+
+  if (loading) return <div className="flex justify-center mt-20"><span className="loading loading-spinner loading-lg text-primary"></span></div>;
+  if (error) return <div className="alert alert-error mt-10">{error}</div>;
+  if (!deal) return <div className="text-center mt-10">Deal not found.</div>;
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Шапка: Кнопка "Назад" и Название сделки */}
+      <div className="flex items-center space-x-4 mb-8">
+        <Link to="/deals" className="btn btn-sm btn-ghost">← Back to Deals</Link>
+        <h1 className="text-3xl font-bold">{deal.title}</h1>
+        <div className="badge badge-primary badge-lg">${deal.value} {deal.currency}</div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* ЛЕВАЯ КОЛОНКА: Инфо о сделке и Компании */}
+        <div className="lg:col-span-1 space-y-6">
+
+          {/* Блок сделки */}
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title text-lg border-b pb-2">Deal Information</h2>
+              <div className="space-y-2 mt-2">
+                <p><span className="font-semibold text-base-content/70">Expected Close:</span> {deal.close_date ? deal.close_date.split('T')[0] : 'N/A'}</p>
+                <p><span className="font-semibold text-base-content/70">Manager:</span> {deal.owner_name || 'N/A'}</p>
+                <p><span className="font-semibold text-base-content/70">Created:</span> {new Date(deal.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Блок Компании */}
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title text-lg border-b pb-2">Company Information</h2>
+              {company ? (
+                <div className="space-y-2 mt-2">
+                  <p className="font-bold text-xl">{company.name}</p>
+                  <p><span className="font-semibold text-base-content/70">Industry:</span> {company.industry || 'N/A'}</p>
+                  <p><span className="font-semibold text-base-content/70">Website:</span> {company.website ? <a href={company.website} target="_blank" rel="noreferrer" className="link link-primary">{company.website}</a> : 'N/A'}</p>
+                  <p><span className="font-semibold text-base-content/70">Address:</span> {company.address || 'N/A'}</p>
+                </div>
+              ) : (
+                <p className="text-base-content/50 italic mt-2">No company linked to this deal.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Блок Контактов */}
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title text-lg border-b pb-2">Associated Contacts</h2>
+              {contacts.length > 0 ? (
+                <ul className="space-y-3 mt-2">
+                  {contacts.map(contact => (
+                    <li key={contact.id} className="bg-base-200 p-3 rounded-lg">
+                      <p className="font-bold">{contact.first_name} {contact.last_name}</p>
+                      <p className="text-sm">{contact.email}</p>
+                      <p className="text-sm text-primary">{contact.phone}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-base-content/50 italic mt-2">No contacts found for this company.</p>
+              )}
+            </div>
+          </div>
+
+        </div>
+        {/* ПРАВАЯ КОЛОНКА: Комментарии (Notes) */}
+        <div className="lg:col-span-2">
+          <div className="card bg-base-100 shadow-xl h-[calc(100vh-12rem)] min-h-[600px] flex flex-col">
+            <div className="card-body flex flex-col overflow-hidden p-4 lg:p-6">
+              <h2 className="card-title text-xl border-b pb-2 mb-4 shrink-0">Manager Comments & History</h2>
+              
+              {/* 1. ИСТОРИЯ КОММЕНТАРИЕВ */}
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4">
+                {comments.length === 0 ? (
+                  <div className="text-center text-base-content/50 mt-10">No comments yet. Start the conversation!</div>
+                ) : (
+                  comments.map(comment => (
+                    <div key={comment.id} className="chat chat-start">
+                      <div className="chat-header mb-1">
+                        <span className="font-bold">{comment.created_by_name || 'User'}</span>
+                        <time className="text-xs opacity-50 ml-2">
+                          {new Date(comment.created_at).toLocaleString()}
+                        </time>
+                      </div>
+                      <div className="chat-bubble bg-base-100 text-base-content shadow-md border border-base-200 whitespace-pre-wrap break-words">
+                        {comment.text}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* 2. ФОРМА ВВОДА */}
+              <form onSubmit={handleAddComment} className="flex items-end space-x-2 shrink-0 pt-4 border-t border-base-200">
+                <textarea 
+                  ref={textareaRef}
+                  placeholder="Write an update... (Shift+Enter for new line)" 
+                  className="textarea textarea-bordered flex-1 min-h-[50px] max-h-[200px] leading-relaxed resize-none overflow-y-auto"
+                  value={newComment}
+                  onChange={(e) => {
+                    setNewComment(e.target.value);
+                    e.target.style.height = 'auto'; 
+                    e.target.style.height = `${e.target.scrollHeight}px`; 
+                  }}
+                  required
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault(); 
+                      handleAddComment(e); 
+                    }
+                  }}
+                />
+                <button type="submit" className="btn btn-primary mb-1">Add Note</button>
+              </form>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+export default DealDetails;

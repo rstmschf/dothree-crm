@@ -15,5 +15,9 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
 
+    def delete(self, using=None, keep_parents=False):
+        self.is_active = False
+        self.save(update_fields=["is_active"])
+
     def __str__(self):
         return f"{self.username} ({self.role})"

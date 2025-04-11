@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
+import { Link } from 'react-router-dom';
 
 function Companies() {
   const [companies, setCompanies] = useState([]);
@@ -114,7 +115,11 @@ function Companies() {
                 ) : (
                   companies.map((company) => (
                     <tr key={company.id}>
-                      <td className="font-bold">{company.name}</td>
+                      <td className="font-bold">
+                        <Link to={`/companies/${company.id}/deals`} className="link link-hover link-primary">
+                          {company.name}
+                        </Link>
+                      </td>
                       <td>{company.industry || 'N/A'}</td>
                       <td>
                         {company.website ? (

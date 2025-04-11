@@ -1,16 +1,28 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Stage, Lead, Deal, ActivityLog
-from .serializers import StageSerializer, LeadSerializer, DealSerializer, DealMoveStageSerializer, ActivityLogSerializer
+from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
+from .models import Stage, Lead, Deal, ActivityLog, Note
+from .serializers import (
+    StageSerializer,
+    LeadSerializer,
+    DealSerializer,
+    DealMoveStageSerializer,
+    ActivityLogSerializer,
+    NoteSerializer
+)
 from .services import move_deal_to_stage
 from django.shortcuts import get_object_or_404
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
 from accounts.permissions import IsOwnerOrManagerOrAdmin
+
 
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     serializer_class = StageSerializer
-    permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class LeadViewSet(viewsets.ModelViewSet):
@@ -24,12 +36,22 @@ class DealViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
 
     def get_queryset(self):
-        qs = Deal.objects.select_related("stage", "company", "owner").all()
         user = self.request.user
-        if getattr(user, "role", None) in ("admin", "manager"):
-            return qs
-        return qs.filter(owner=user)
+        queryset = Deal.objects.all()
 
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+        if not is_management:
+            queryset = queryset.filter(owner=user)
+
+        company_id = self.request.query_params.get('company')
+        if company_id:
+            queryset = queryset.filter(company_id=company_id)
+
+        contact_id = self.request.query_params.get('contact')
+        if contact_id:
+            queryset = queryset.filter(contact_id=contact_id)
+
+        return queryset
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, owner=self.request.user)
 
@@ -41,8 +63,16 @@ class DealViewSet(viewsets.ModelViewSet):
         stage_id = serializer.validated_data["stage_id"]
         stage = get_object_or_404(Stage, pk=stage_id)
 
-        deal = move_deal_to_stage(deal=deal, stage=stage, actor=request.user, message=request.data.get("message", ""))
-        return Response(DealSerializer(deal, context={"request": request}).data, status=status.HTTP_200_OK)
+        deal = move_deal_to_stage(
+            deal=deal,
+            stage=stage,
+            actor=request.user,
+            message=request.data.get("message", ""),
+        )
+        return Response(
+            DealSerializer(deal, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -50,3 +80,78 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ActivityLogSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filterset_fields = ("actor",)
+
+
+class AnalyticsView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin]
+
+    def get(self, request):
+        user = request.user
+        now = timezone.now()
+
+        base_deals = Deal.objects.all()
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+        
+        if not is_management:
+            base_deals = base_deals.filter(owner=user)
+
+        open_deals = base_deals.filter(stage__is_won=False, stage__is_lost=False)
+        pipeline_value = open_deals.aggregate(total=Sum("value"))["total"] or 0
+
+        this_month_deals = open_deals.filter(close_date__month=now.month, close_date__year=now.year)
+        expected_revenue = this_month_deals.aggregate(total=Sum("value"))["total"] or 0
+
+        won_deals = base_deals.filter(stage__is_won=True).count()
+        lost_deals = base_deals.filter(stage__is_lost=True).count()
+        total_closed = won_deals + lost_deals
+        win_rate = round((won_deals / total_closed * 100) if total_closed > 0 else 0, 1)
+
+        deal_filter = Q()
+        if not is_management:
+            deal_filter = Q(deals__owner=user)
+
+        stages = (
+            Stage.objects.annotate(
+                deal_count=Count("deals", filter=deal_filter),
+                total_value=Sum("deals__value", filter=deal_filter)
+            )
+            .values("name", "deal_count", "total_value", "order", "is_won", "is_lost")
+            .order_by("order")
+        )
+
+        return Response({
+            "pipeline_value": pipeline_value,
+            "expected_revenue": expected_revenue,
+            "win_rate": win_rate,
+            "won_deals": won_deals,
+            "stages": list(stages)
+        })
+
+class NoteViewSet(viewsets.ModelViewSet):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Note.objects.all()
+
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+        
+        if not is_management:
+            queryset = queryset.filter(deal__owner=user)
+
+        deal_id = self.request.query_params.get("deal")
+        if deal_id:
+            queryset = queryset.filter(deal_id=deal_id)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        deal = serializer.validated_data['deal']
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+
+        if not is_management and deal.owner != user:
+            raise PermissionDenied("You cannot add notes to a deal you do not own.")
+
+        serializer.save(created_by=user)

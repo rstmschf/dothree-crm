@@ -1,6 +1,6 @@
-// src/pages/Contacts.jsx
 import { useState, useEffect } from 'react';
 import api from '../api';
+import { Link } from 'react-router-dom';
 
 function Contacts() {
   const [contacts, setContacts] = useState([]);
@@ -127,7 +127,19 @@ function Contacts() {
                 ) : (
                   contacts.map((contact) => (
                     <tr key={contact.id}>
-                      <td className="font-medium">{contact.first_name} {contact.last_name}</td>
+                      <td className="font-medium">
+                        {contact.company ? (
+                          <Link 
+                            to={`/companies/${contact.company}/deals`} 
+                            className="link link-hover link-primary"
+                            title={`View deals for ${contact.company_name}`}
+                          >
+                            {contact.first_name} {contact.last_name}
+                          </Link>
+                        ) : (
+                          <span>{contact.first_name} {contact.last_name}</span>
+                        )}
+                      </td>
                       <td>{contact.email}</td>
                       <td>{contact.company_name || 'N/A'}</td>
                       <td>
