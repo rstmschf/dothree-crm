@@ -23,7 +23,7 @@ def user(db):
 
 @pytest.fixture
 def auth_api_client(api_client, user):
-    login_url = reverse("login")  # имя пути из accounts/urls.py
+    login_url = reverse("login")
     resp = api_client.post(
         login_url,
         {"username": user.username, "password": "testpassword"},
