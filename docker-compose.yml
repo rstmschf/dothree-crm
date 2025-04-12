@@ -15,7 +15,7 @@ services:
       retries: 5
 
   web:
-    build: .
+    build: . 
     container_name: crm_web
     volumes:
       - .:/app
@@ -27,6 +27,14 @@ services:
       db:
         condition: service_healthy
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: crm_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
 volumes:
   dothree_crm_pgdata:
