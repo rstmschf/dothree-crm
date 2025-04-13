@@ -114,7 +114,7 @@ class ActivityLog(models.Model):
 
 class Note(models.Model):
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="notes")
-    text = models.TextField(blank=False)
+    text = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -124,6 +124,7 @@ class Note(models.Model):
         blank=True,
         related_name="notes",
     )
+    attachment = models.FileField(upload_to='deal_notes/', blank=True, null=True)
 
     class Meta:
         ordering = ("-created_at",)

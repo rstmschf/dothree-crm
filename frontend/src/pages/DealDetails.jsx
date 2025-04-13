@@ -2,6 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 
+// Функция для разделения имени файла и его расширения
+const getFileParts = (url) => {
+  if (!url) return { name: '', ext: '' };
+  const full = decodeURIComponent(url.split('/').pop());
+  const lastDot = full.lastIndexOf('.');
+  
+  if (lastDot === -1 || lastDot === 0) return { name: full, ext: '' };
+  
+  return { 
+    name: full.substring(0, lastDot), 
+    ext: full.substring(lastDot) 
+  };
+};
+
 function DealDetails() {
   const { id } = useParams(); // Берем ID сделки из URL
   const [deal, setDeal] = useState(null);
@@ -10,6 +24,8 @@ function DealDetails() {
   const [comments, setComments] = useState([]);
 
   const [newComment, setNewComment] = useState('');
+  const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -50,19 +66,23 @@ function DealDetails() {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!newComment.trim()) return;
+    if (!newComment.trim() && !file) return;
+
+    const formData = new FormData();
+    formData.append('deal', id);
+    formData.append('text', newComment);
+    if (file) {
+      formData.append('attachment', file);
+    }
 
     try {
-      const response = await api.post('sales/notes/', {
-        deal: id,
-        text: newComment,
-      });
+      const response = await api.post('sales/notes/', formData);
+      
       setComments([response.data, ...comments]);
       setNewComment('');
-
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
+      setFile(null); 
+      if (fileInputRef.current) fileInputRef.current.value = ''; 
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
     } catch (err) {
       alert("Failed to add comment.");
     }
@@ -78,7 +98,7 @@ function DealDetails() {
       <div className="flex items-center space-x-4 mb-8">
         <Link to="/deals" className="btn btn-sm btn-ghost">← Back to Deals</Link>
         <h1 className="text-3xl font-bold">{deal.title}</h1>
-        <div className="badge badge-primary badge-lg">${deal.value} {deal.currency}</div>
+        <div className="badge badge-primary badge-sm md:badge-lg whitespace-nowrap">${deal.value} {deal.currency}</div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -143,9 +163,10 @@ function DealDetails() {
               <h2 className="card-title text-xl border-b pb-2 mb-4 shrink-0">Manager Comments & History</h2>
               
               {/* 1. ИСТОРИЯ КОММЕНТАРИЕВ */}
+              {/* СПИСОК КОММЕНТАРИЕВ */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4">
                 {comments.length === 0 ? (
-                  <div className="text-center text-base-content/50 mt-10">No comments yet. Start the conversation!</div>
+                  <div className="text-center text-base-content/50 mt-10">No comments yet.</div>
                 ) : (
                   comments.map(comment => (
                     <div key={comment.id} className="chat chat-start">
@@ -157,25 +178,50 @@ function DealDetails() {
                       </div>
                       <div className="chat-bubble bg-base-100 text-base-content shadow-md border border-base-200 whitespace-pre-wrap break-words">
                         {comment.text}
+                        
+                        {/* ЕСЛИ ЕСТЬ ФАЙЛ - ПОКАЗЫВАЕМ ССЫЛКУ */}
+                        {comment.attachment && (
+                          <div className="mt-3 pt-3 border-t border-base-300">
+                            {(() => {
+                              const { name, ext } = getFileParts(comment.attachment);
+                              
+                              return (
+                                <a 
+                                  href={comment.attachment} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  title={name + ext} // Полное имя при наведении
+                                  className="btn btn-sm btn-outline btn-primary w-[200px] justify-start flex-nowrap overflow-hidden"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                  
+                                  <div className="flex flex-nowrap overflow-hidden text-left">
+                                    <span className="truncate">{name}</span>
+                                    <span className="shrink-0">{ext}</span>
+                                  </div>
+                                </a>
+                              );
+                            })()}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
                 )}
               </div>
 
-              {/* 2. ФОРМА ВВОДА */}
-              <form onSubmit={handleAddComment} className="flex items-end space-x-2 shrink-0 pt-4 border-t border-base-200">
+              {/* ФОРМА ВВОДА */}
+              <form onSubmit={handleAddComment} className="flex flex-col space-y-2 shrink-0 pt-4 border-t border-base-200">
                 <textarea 
                   ref={textareaRef}
                   placeholder="Write an update... (Shift+Enter for new line)" 
-                  className="textarea textarea-bordered flex-1 min-h-[50px] max-h-[200px] leading-relaxed resize-none overflow-y-auto"
+                  className="textarea textarea-bordered w-full min-h-[50px] max-h-[200px] leading-relaxed resize-none overflow-y-auto"
                   value={newComment}
                   onChange={(e) => {
                     setNewComment(e.target.value);
                     e.target.style.height = 'auto'; 
                     e.target.style.height = `${e.target.scrollHeight}px`; 
                   }}
-                  required
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault(); 
@@ -183,7 +229,17 @@ function DealDetails() {
                     }
                   }}
                 />
-                <button type="submit" className="btn btn-primary mb-1">Add Note</button>
+                
+                <div className="flex justify-between items-center">
+                  {/* КНОПКА ЗАГРУЗКИ ФАЙЛА (DaisyUI) */}
+                  <input 
+                    type="file" 
+                    className="file-input file-input-bordered file-input-sm w-full max-w-xs" 
+                    onChange={(e) => setFile(e.target.files[0])}
+                    ref={fileInputRef}
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm">Add Note</button>
+                </div>
               </form>
 
             </div>

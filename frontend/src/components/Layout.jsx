@@ -10,7 +10,7 @@ function Layout() {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        setFullName(payload.full_name || 'User'); 
+        setFullName(payload.full_name || 'User');
       } catch (e) {
         console.error("Could not parse JWT token.");
       }
@@ -25,7 +25,7 @@ function Layout() {
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
-      
+
       <div className="drawer-content flex flex-col bg-base-200 min-h-screen">
         <div className="navbar bg-base-100 border-b border-base-300 px-4">
           <div className="flex-none lg:hidden">
@@ -36,12 +36,12 @@ function Layout() {
           <div className="flex-1">
             <span className="text-xl font-bold lg:hidden">My CRM</span>
           </div>
-          
+
           <div className="flex-none flex items-center gap-2">
             <button className="btn btn-sm btn-ghost normal-case text-base">
               {fullName}
             </button>
-            
+
             <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error">
               Logout
             </button>
@@ -50,7 +50,7 @@ function Layout() {
         </div>
 
         <div className="p-8">
-            <Outlet /> 
+          <Outlet />
         </div>
       </div>
 
@@ -58,7 +58,7 @@ function Layout() {
         <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
         <ul className="menu p-4 w-64 min-h-full bg-base-100 text-base-content">
           <li className="mb-6 mt-2">
-            <span className="text-2xl font-bold text-primary">My CRM</span>
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''}><span className="text-2xl font-bold text-primary">Dothree</span></Link>
           </li>
           <li>
             <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Overview</Link>
@@ -79,3 +79,4 @@ function Layout() {
 }
 
 export default Layout;
+
