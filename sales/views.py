@@ -10,9 +10,9 @@ from .serializers import (
     DealSerializer,
     DealMoveStageSerializer,
     ActivityLogSerializer,
-    NoteSerializer
+    NoteSerializer,
 )
-from .services import move_deal_to_stage
+from .services import move_deal_to_stage, format_manager_note_with_ai
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
@@ -43,15 +43,16 @@ class DealViewSet(viewsets.ModelViewSet):
         if not is_management:
             queryset = queryset.filter(owner=user)
 
-        company_id = self.request.query_params.get('company')
+        company_id = self.request.query_params.get("company")
         if company_id:
             queryset = queryset.filter(company_id=company_id)
 
-        contact_id = self.request.query_params.get('contact')
+        contact_id = self.request.query_params.get("contact")
         if contact_id:
             queryset = queryset.filter(contact_id=contact_id)
 
         return queryset
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, owner=self.request.user)
 
@@ -91,14 +92,16 @@ class AnalyticsView(APIView):
 
         base_deals = Deal.objects.all()
         is_management = getattr(user, "role", None) in ("admin", "manager")
-        
+
         if not is_management:
             base_deals = base_deals.filter(owner=user)
 
         open_deals = base_deals.filter(stage__is_won=False, stage__is_lost=False)
         pipeline_value = open_deals.aggregate(total=Sum("value"))["total"] or 0
 
-        this_month_deals = open_deals.filter(close_date__month=now.month, close_date__year=now.year)
+        this_month_deals = open_deals.filter(
+            close_date__month=now.month, close_date__year=now.year
+        )
         expected_revenue = this_month_deals.aggregate(total=Sum("value"))["total"] or 0
 
         won_deals = base_deals.filter(stage__is_won=True).count()
@@ -113,19 +116,22 @@ class AnalyticsView(APIView):
         stages = (
             Stage.objects.annotate(
                 deal_count=Count("deals", filter=deal_filter),
-                total_value=Sum("deals__value", filter=deal_filter)
+                total_value=Sum("deals__value", filter=deal_filter),
             )
             .values("name", "deal_count", "total_value", "order", "is_won", "is_lost")
             .order_by("order")
         )
 
-        return Response({
-            "pipeline_value": pipeline_value,
-            "expected_revenue": expected_revenue,
-            "win_rate": win_rate,
-            "won_deals": won_deals,
-            "stages": list(stages)
-        })
+        return Response(
+            {
+                "pipeline_value": pipeline_value,
+                "expected_revenue": expected_revenue,
+                "win_rate": win_rate,
+                "won_deals": won_deals,
+                "stages": list(stages),
+            }
+        )
+
 
 class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
@@ -136,7 +142,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         queryset = Note.objects.all()
 
         is_management = getattr(user, "role", None) in ("admin", "manager")
-        
+
         if not is_management:
             queryset = queryset.filter(deal__owner=user)
 
@@ -146,12 +152,29 @@ class NoteViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    from .services import format_manager_note_with_ai
+
     def perform_create(self, serializer):
         user = self.request.user
-        deal = serializer.validated_data['deal']
+        deal = serializer.validated_data["deal"]
         is_management = getattr(user, "role", None) in ("admin", "manager")
-
         if not is_management and deal.owner != user:
             raise PermissionDenied("You cannot add notes to a deal you do not own.")
+        raw_text = serializer.validated_data.get("text", "")
+
+        if '@bot' in raw_text.lower():
+            prompt_text = raw_text.lower().replace('@bot', '', 1).strip()
+            
+            try:
+                ai_formatted_text = format_manager_note_with_ai(prompt_text)
+                
+                final_text = f"🤖 Сводка от AI:\n\n{ai_formatted_text}"
+                serializer.save(created_by=user, text=final_text)
+                return 
+                
+            except Exception as e:
+                final_text = f"❌ Ошибка API: {str(e)}\n\nИсходный текст: {prompt_text}"
+                serializer.save(created_by=user, text=final_text)
+                return
 
         serializer.save(created_by=user)

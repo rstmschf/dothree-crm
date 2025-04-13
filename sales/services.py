@@ -1,6 +1,8 @@
 from .models import Deal, Stage, ActivityLog
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.conf import settings
+from groq import Groq
 
 
 def move_deal_to_stage(deal: Deal, stage: Stage, actor=None, message: str = "") -> Deal:
@@ -40,3 +42,22 @@ def move_deal_to_stage(deal: Deal, stage: Stage, actor=None, message: str = "") 
         )
 
     return deal
+
+
+client = Groq(api_key=settings.AI_API_KEY)
+
+
+def format_manager_note_with_ai(raw_text):
+    """Отправляет текст иишке и возвращает отформатированный вариант"""
+    system_text = "Make this CRM comment brief and professional, don't add headings or anything, keep all the important info, keep input language"
+    try:
+        response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_text},
+                {"role": "user", "content": raw_text},
+            ],
+            model="openai/gpt-oss-120b",
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        raise e
