@@ -104,7 +104,7 @@ class NoteSerializer(serializers.ModelSerializer):
         return "Deleted User"
 
 class ReminderSerializer(serializers.ModelSerializer):
-    owner_name = serializers.ReadOnlyField(source="owner.get_full_name")
+    owner_name = serializers.SerializerMethodField()
     deal_title = serializers.ReadOnlyField(source="deal.title")
     
     class Meta:
@@ -130,3 +130,8 @@ class ReminderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Reminder can not be created for Past.")
         
         return value
+    
+    def get_owner_name(self, obj):
+        if obj.owner:
+            return obj.owner.get_full_name() or obj.owner.username
+        return "Deleted User"

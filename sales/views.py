@@ -24,8 +24,26 @@ from accounts.permissions import IsOwnerOrManagerOrAdmin
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     serializer_class = StageSerializer
-    permission_classes = (permissions.IsAuthenticated, IsAdmin)
+    permission_classes = (permissions.IsAuthenticated,)
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+        if not is_management:
+            raise PermissionDenied("You need to be Admin to do this")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+        if not is_management:
+            raise PermissionDenied("You need to be Admin to do this")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if instance.is_system:
+            raise PermissionDenied("System stages can not be deleted.")
+        instance.delete()
 
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.select_related("company", "contact", "owner").all()
@@ -57,10 +75,6 @@ class DealViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, owner=self.request.user)
-
-    def perform_destroy(self, instance):
-        if instance.is_system:
-            raise PermissionDenied("System stages can not be deleted.")
 
     @action(detail=True, methods=["post"], url_path="move-stage")
     def move_stage(self, request, pk=None):

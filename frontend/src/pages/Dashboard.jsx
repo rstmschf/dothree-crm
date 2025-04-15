@@ -225,6 +225,7 @@ function Dashboard() {
                   <th>Date & Time</th>
                   <th>Task</th>
                   <th>Deal</th>
+                  <th>Manager</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -259,6 +260,9 @@ function Dashboard() {
                         <a href={`/deals/${reminder.deal}`} className="link link-hover text-primary font-semibold truncate max-w-[150px] inline-block">
                           {reminder.deal_title || `Deal #${reminder.deal}`}
                         </a>
+                      </td>
+                      <td className={reminder.is_done ? "line-through opacity-50" : ""}>
+                        {reminder.owner_name || <span className="text-gray-400 italic">No owner</span>}
                       </td>
                       <td>
                         <div className="flex gap-2">

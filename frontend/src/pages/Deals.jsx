@@ -141,7 +141,7 @@ function Deals() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Deals</h1>
         <button onClick={openAddModal} className="btn btn-primary">+ New Deal</button>
       </div>
@@ -155,7 +155,7 @@ function Deals() {
           {stages.map(stage => (
             <div 
               key={stage.id} 
-              className="bg-base-200 rounded-box w-80 min-w-[320px] p-4 flex flex-col shadow-inner"
+              className="bg-base-200 rounded-box w-80 min-w-[260px] p-4 flex flex-col shadow-inner"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage.id)}
             >
