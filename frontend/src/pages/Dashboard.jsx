@@ -135,7 +135,7 @@ function Dashboard() {
   const maxStageValue = metrics?.stages?.length ? Math.max(...metrics.stages.map(s => s.total_value || 0)) : 0;
 
   return (
-    <div className="space-y-8 relative pb-10">
+    <div className="space-y-4 relative pb-2">
       <h1 className="text-3xl font-bold">Sales Overview</h1>
 
       {/* --- БЛОК АНАЛИТИКИ --- */}
@@ -172,7 +172,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-base-100 rounded-box shadow p-6">
+          <div className="bg-base-100 rounded-box shadow p-4">
             <h2 className="text-xl font-semibold mb-6">Distribution by Stage</h2>
 
             <div className="space-y-4">
@@ -207,17 +207,17 @@ function Dashboard() {
       )}
 
       {/* --- ТАБЛИЦА НАПОМИНАНИЙ --- */}
-      <div className="card bg-base-100 shadow-xl mt-8">
-        <div className="card-body p-6">
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body p-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="card-title text-xl">Upcoming Reminders</h2>
+            <h2 className="card-title text-xl">Reminders</h2>
             <button className="btn btn-primary btn-sm" onClick={openCreateModal}>
               + Add Reminder
             </button>
           </div>
 
           {/* Контейнер с overflow-y-auto для скролла внутри таблицы */}
-          <div className="overflow-x-auto overflow-y-auto max-h-[400px] border border-base-200 rounded-lg pr-2 custom-scrollbar">
+          <div className="overflow-x-auto overflow-y-auto max-h-[25vh] border border-base-200 rounded-lg pr-2 custom-scrollbar">
             <table className="table table-pin-rows table-zebra w-full">
               <thead>
                 <tr className="bg-base-200 text-base-content">

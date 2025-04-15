@@ -49,7 +49,7 @@ function Layout() {
 
         </div>
 
-        <div className="p-8">
+        <div className="p-6">
           <Outlet />
         </div>
       </div>
