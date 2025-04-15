@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Stage, Lead, Deal, ActivityLog, Note
+from .models import Stage, Lead, Deal, ActivityLog, Note, Reminder
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -8,7 +9,19 @@ User = get_user_model()
 class StageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stage
-        fields = ("id", "name", "order", "is_won", "is_lost")
+        fields = ("id", "name", "order", "is_won", "is_lost", "is_system")
+        read_only_fields = ("is_system",)
+
+    def validate(self, data):
+        if self.instance and self.instance.is_system:
+            forbidden_fields = ["name", "is_won", "is_lost"]
+
+            for field in forbidden_fields:
+                if field in data and data[field] != getattr(self.instance, field):
+                    raise serializers.ValidationError(
+                        {field: "This field is uneditable for system stage."}
+                    )
+        return data
 
 
 class LeadSerializer(serializers.ModelSerializer):
@@ -81,7 +94,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "created_by_name",
-            "attachment"
+            "attachment",
         )
         read_only_fields = ("created_by", "created_at", "updated_at")
 
@@ -89,3 +102,31 @@ class NoteSerializer(serializers.ModelSerializer):
         if obj.created_by:
             return obj.created_by.get_full_name() or obj.created_by.username
         return "Deleted User"
+
+class ReminderSerializer(serializers.ModelSerializer):
+    owner_name = serializers.ReadOnlyField(source="owner.get_full_name")
+    deal_title = serializers.ReadOnlyField(source="deal.title")
+    
+    class Meta:
+        model = Reminder
+        fields = (
+            "id",
+            "text",
+            "created_at",
+            "updated_at",
+            "deal",
+            "owner",
+            "date",
+            "is_done",
+            "contact",
+            "owner_name",
+            "deal_title"
+        )
+        read_only_fields = ("created_at", "updated_at", "owner",)
+
+    def validate_date(self, value):
+        now = timezone.now()
+        if value < now:
+            raise serializers.ValidationError("Reminder can not be created for Past.")
+        
+        return value

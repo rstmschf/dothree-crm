@@ -12,6 +12,7 @@ class Stage(models.Model):
     order = models.PositiveIntegerField(default=0)
     is_won = models.BooleanField(default=False)
     is_lost = models.BooleanField(default=False)
+    is_system = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("order",)
@@ -131,3 +132,27 @@ class Note(models.Model):
 
     def __str__(self):
         return f"Note on {self.deal.title}: {self.text[:50]}..."
+    
+class Reminder(models.Model):
+    text = models.CharField(max_length=150, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="reminders")
+    date = models.DateTimeField(blank=False)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reminders",
+    )
+    is_done = models.BooleanField(default=False)
+    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, related_name="reminders", null = True, blank = True)
+
+    class Meta:
+        ordering = ("date",)
+
+    def __str__(self):
+        status = "✅" if self.is_done else "🕒"
+        text_preview = f" {self.text[:20]}..." if self.text else ""
+        return f"Reminder for {self.deal.title}: {status} {text_preview}"

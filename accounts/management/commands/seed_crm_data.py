@@ -36,15 +36,15 @@ class Command(BaseCommand):
             test_user2.save()
 
         # 2. Stages
-        stage_new, _ = Stage.objects.get_or_create(
-            name="1 - New", defaults={"order": 1}
-        )
-        stage_proposal, _ = Stage.objects.get_or_create(
-            name="2 - Proposal Sent", defaults={"order": 2}
-        )
-        stage_won, _ = Stage.objects.get_or_create(
-            name="3 - Closed Won", defaults={"order": 3, "is_won": True}
-        )
+        # stage_new, _ = Stage.objects.get_or_create(
+        #     name="1 - New", defaults={"order": 1}
+        # )
+        # stage_proposal, _ = Stage.objects.get_or_create(
+        #     name="2 - Proposal Sent", defaults={"order": 2}
+        # )
+        # stage_won, _ = Stage.objects.get_or_create(
+        #     name="3 - Closed Won", defaults={"order": 3, "is_won": True}
+        # )
 
         # 3. Companies
         company_testco, _ = Company.objects.get_or_create(
@@ -158,7 +158,7 @@ class Command(BaseCommand):
             defaults={
                 "value": Decimal("45500.00"),
                 "currency": "USD",
-                "stage": stage_proposal,
+                "stage": Stage.objects.get_or_create(order = 10)[0],
                 "owner": test_user,
                 "lead": lead_inbound,
                 "company": company_testco,
@@ -172,7 +172,7 @@ class Command(BaseCommand):
             defaults={
                 "value": Decimal("15800.00"),
                 "currency": "USD",
-                "stage": stage_proposal,
+                "stage": Stage.objects.get_or_create(order = 10)[0],
                 "owner": test_user2,
                 "lead": lead_inbound2,
                 "company": company_mainone,

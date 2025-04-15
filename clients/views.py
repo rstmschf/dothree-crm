@@ -20,7 +20,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        qs = Company.objects.filter(is_active=True)
+        qs = Company.objects.select_related("owner").filter(is_active=True)
         user = self.request.user
         if getattr(user, "role", None) in ("admin", "manager"):
             return qs
