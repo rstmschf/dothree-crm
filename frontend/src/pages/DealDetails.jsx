@@ -2,22 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 
-// Функция для разделения имени файла и его расширения
+
 const getFileParts = (url) => {
   if (!url) return { name: '', ext: '' };
   const full = decodeURIComponent(url.split('/').pop());
   const lastDot = full.lastIndexOf('.');
-  
+
   if (lastDot === -1 || lastDot === 0) return { name: full, ext: '' };
-  
-  return { 
-    name: full.substring(0, lastDot), 
-    ext: full.substring(lastDot) 
+
+  return {
+    name: full.substring(0, lastDot),
+    ext: full.substring(lastDot)
   };
 };
 
 function DealDetails() {
-  const { id } = useParams(); // Берем ID сделки из URL
+  const { id } = useParams();
   const [deal, setDeal] = useState(null);
   const [company, setCompany] = useState(null);
   const [contacts, setContacts] = useState([]);
@@ -36,22 +36,17 @@ function DealDetails() {
 
   const fetchAllDealData = async () => {
     try {
-      // 1. Получаем саму сделку
       const dealRes = await api.get(`sales/deals/${id}/`);
       const dealData = dealRes.data;
       setDeal(dealData);
 
-      // 2. Получаем комментарии к этой сделке
-      // Предполагается, что на бэкенде есть фильтрация по сделке: ?deal=id
       const commentsRes = await api.get(`sales/notes/?deal=${id}`);
       setComments(commentsRes.data);
 
-      // 3. Если к сделке привязана компания, подтягиваем ее данные и контакты
       if (dealData.company) {
         const companyRes = await api.get(`clients/companies/${dealData.company}/`);
         setCompany(companyRes.data);
 
-        // Получаем контакты, фильтруя их по ID компании
         const contactsRes = await api.get(`clients/contacts/?company=${dealData.company}`);
         setContacts(contactsRes.data);
       }
@@ -77,11 +72,11 @@ function DealDetails() {
 
     try {
       const response = await api.post('sales/notes/', formData);
-      
+
       setComments([response.data, ...comments]);
       setNewComment('');
-      setFile(null); 
-      if (fileInputRef.current) fileInputRef.current.value = ''; 
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
     } catch (err) {
       alert("Failed to add comment.");
@@ -94,7 +89,6 @@ function DealDetails() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Шапка: Кнопка "Назад" и Название сделки */}
       <div className="flex items-center space-x-4 mb-8">
         <Link to="/deals" className="btn btn-sm btn-ghost">← Back to Deals</Link>
         <h1 className="text-3xl font-bold">{deal.title}</h1>
@@ -103,10 +97,9 @@ function DealDetails() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* ЛЕВАЯ КОЛОНКА: Инфо о сделке и Компании */}
         <div className="lg:col-span-1 space-y-6">
 
-          {/* Блок сделки */}
+          {/* Deals block */}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-lg border-b pb-2">Deal Information</h2>
@@ -118,7 +111,7 @@ function DealDetails() {
             </div>
           </div>
 
-          {/* Блок Компании */}
+          {/* Company block */}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-lg border-b pb-2">Company Information</h2>
@@ -135,7 +128,7 @@ function DealDetails() {
             </div>
           </div>
 
-          {/* Блок Контактов */}
+          {/* Contacts block */}
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
               <h2 className="card-title text-lg border-b pb-2">Associated Contacts</h2>
@@ -156,14 +149,13 @@ function DealDetails() {
           </div>
 
         </div>
-        {/* ПРАВАЯ КОЛОНКА: Комментарии (Notes) */}
+        {/* Comments (Notes) block */}
         <div className="lg:col-span-2">
           <div className="card bg-base-100 shadow-xl h-[calc(100vh-12rem)] min-h-[600px] flex flex-col">
             <div className="card-body flex flex-col overflow-hidden p-4 lg:p-6">
               <h2 className="card-title text-xl border-b pb-2 mb-4 shrink-0">Manager Comments & History</h2>
-              
-              {/* 1. ИСТОРИЯ КОММЕНТАРИЕВ */}
-              {/* СПИСОК КОММЕНТАРИЕВ */}
+
+              {/* Comments list */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4">
                 {comments.length === 0 ? (
                   <div className="text-center text-base-content/50 mt-10">No comments yet.</div>
@@ -178,23 +170,22 @@ function DealDetails() {
                       </div>
                       <div className="chat-bubble bg-base-100 text-base-content shadow-md border border-base-200 whitespace-pre-wrap break-words">
                         {comment.text}
-                        
-                        {/* ЕСЛИ ЕСТЬ ФАЙЛ - ПОКАЗЫВАЕМ ССЫЛКУ */}
+
                         {comment.attachment && (
                           <div className="mt-3 pt-3 border-t border-base-300">
                             {(() => {
                               const { name, ext } = getFileParts(comment.attachment);
-                              
+
                               return (
-                                <a 
-                                  href={comment.attachment} 
-                                  target="_blank" 
+                                <a
+                                  href={comment.attachment}
+                                  target="_blank"
                                   rel="noopener noreferrer"
-                                  title={name + ext} // Полное имя при наведении
+                                  title={name + ext}
                                   className="btn btn-sm btn-outline btn-primary w-[200px] justify-start flex-nowrap overflow-hidden"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                  
+
                                   <div className="flex flex-nowrap overflow-hidden text-left">
                                     <span className="truncate">{name}</span>
                                     <span className="shrink-0">{ext}</span>
@@ -210,31 +201,31 @@ function DealDetails() {
                 )}
               </div>
 
-              {/* ФОРМА ВВОДА */}
+              {/* Input form */}
               <form onSubmit={handleAddComment} className="flex flex-col space-y-2 shrink-0 pt-4 border-t border-base-200">
-                <textarea 
+                <textarea
                   ref={textareaRef}
-                  placeholder="Write an update... (Shift+Enter for new line)" 
+                  placeholder="Write an update... (Shift+Enter for new line)"
                   className="textarea textarea-bordered w-full min-h-[50px] max-h-[200px] leading-relaxed resize-none overflow-y-auto"
                   value={newComment}
                   onChange={(e) => {
                     setNewComment(e.target.value);
-                    e.target.style.height = 'auto'; 
-                    e.target.style.height = `${e.target.scrollHeight}px`; 
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault(); 
-                      handleAddComment(e); 
+                      e.preventDefault();
+                      handleAddComment(e);
                     }
                   }}
                 />
-                
+
                 <div className="flex justify-between items-center">
-                  {/* КНОПКА ЗАГРУЗКИ ФАЙЛА (DaisyUI) */}
-                  <input 
-                    type="file" 
-                    className="file-input file-input-bordered file-input-sm w-full max-w-xs" 
+                  {/* File upload button */}
+                  <input
+                    type="file"
+                    className="file-input file-input-bordered file-input-sm w-full max-w-xs"
                     onChange={(e) => setFile(e.target.files[0])}
                     ref={fileInputRef}
                   />

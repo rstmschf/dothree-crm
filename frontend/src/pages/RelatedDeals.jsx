@@ -3,9 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 
 function RelatedDeals() {
-  const { id } = useParams(); // ID компании
+  const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [deals, setDeals] = useState([]);
   const [company, setCompany] = useState(null);
   const [stages, setStages] = useState([]);
@@ -17,13 +17,12 @@ function RelatedDeals() {
 
   const fetchData = async () => {
     try {
-      // Запрашиваем компанию, её сделки и список стадий (чтобы красиво показать статус)
       const [companyRes, dealsRes, stagesRes] = await Promise.all([
         api.get(`clients/companies/${id}/`),
         api.get(`sales/deals/?company=${id}`),
         api.get('sales/stages/')
       ]);
-      
+
       setCompany(companyRes.data);
       setDeals(dealsRes.data);
       setStages(stagesRes.data);
@@ -34,7 +33,6 @@ function RelatedDeals() {
     }
   };
 
-  // Вспомогательная функция для получения имени стадии по её ID
   const getStageName = (stageId) => {
     const stage = stages.find(s => s.id === stageId);
     return stage ? stage.name : 'Unknown';
@@ -69,8 +67,8 @@ function RelatedDeals() {
               </thead>
               <tbody>
                 {deals.map(deal => (
-                  <tr 
-                    key={deal.id} 
+                  <tr
+                    key={deal.id}
                     onClick={() => navigate(`/deals/${deal.id}`)}
                     className="cursor-pointer hover:bg-base-200 transition-colors"
                   >

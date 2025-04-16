@@ -172,8 +172,6 @@ class NoteViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    from .services import format_manager_note_with_ai
-
     def perform_create(self, serializer):
         user = self.request.user
         deal = serializer.validated_data["deal"]
@@ -188,14 +186,12 @@ class NoteViewSet(viewsets.ModelViewSet):
             try:
                 ai_formatted_text = format_manager_note_with_ai(prompt_text)
                 
-                final_text = f"🤖 Сводка от AI:\n\n{ai_formatted_text}"
+                final_text = f"🤖:\n\n{ai_formatted_text}"
                 serializer.save(created_by=user, text=final_text)
                 return 
                 
             except Exception as e:
-                final_text = f"❌ Ошибка API: {str(e)}\n\nИсходный текст: {prompt_text}"
-                serializer.save(created_by=user, text=final_text)
-                return
+                raise ValidationError(f"❌ API Error: {str(e)}")
 
         serializer.save(created_by=user)
 
