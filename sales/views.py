@@ -14,7 +14,7 @@ from .serializers import (
     ReminderSerializer,
 )
 from .services import move_deal_to_stage
-from .tasks import process_ai_note_task
+from .tasks import process_ai_note_task, broadcast_new_note_task, broadcast_reminder_update
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
@@ -167,6 +167,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         user = self.request.user
         deal = serializer.validated_data["deal"]
         is_management = getattr(user, "role", None) in ("admin", "manager")
+        
         if not is_management and deal.owner != user:
             raise PermissionDenied("You cannot add notes to a deal you do not own.")
         raw_text = serializer.validated_data.get("text", "")
@@ -179,11 +180,12 @@ class NoteViewSet(viewsets.ModelViewSet):
                 original_text=raw_text,
                 text="⏳ *AI is working on it...*" 
             )
-            
+            broadcast_new_note_task.delay(note.id)
             process_ai_note_task.delay(note.id, prompt_text)
             return
             
-        serializer.save(created_by=user)
+        note = serializer.save(created_by=user)
+        broadcast_new_note_task.delay(note.id)
 
 class ReminderViewSet(viewsets.ModelViewSet):
     serializer_class = ReminderSerializer
@@ -201,7 +203,20 @@ class ReminderViewSet(viewsets.ModelViewSet):
         return queryset
     
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        reminder = serializer.save(owner=self.request.user)
+        broadcast_reminder_update.delay(reminder.id, reminder.owner.id, "created")
+
+    def perform_update(self, serializer):
+        reminder = serializer.save()
+        if reminder.owner:
+            broadcast_reminder_update.delay(reminder.id, reminder.owner.id, "updated")
+
+    def perform_destroy(self, instance):
+        reminder_id = instance.id
+        owner_id = instance.owner.id if instance.owner else None
+        instance.delete()
+        if owner_id:
+            broadcast_reminder_update.delay(reminder_id, owner_id, "deleted")
 
     @action(detail=True, methods=["post"])
     def toggle(self, request, pk=None):
@@ -209,10 +224,12 @@ class ReminderViewSet(viewsets.ModelViewSet):
         reminder.is_done = not reminder.is_done
         reminder.save(update_fields=["is_done", "updated_at"])
         
+        if reminder.owner:
+            broadcast_reminder_update.delay(reminder.id, reminder.owner.id, "updated")
+            
         return Response({
             "id": reminder.id,
             "is_done": reminder.is_done,
             "status": "success"
         })
-
 

@@ -59,6 +59,30 @@ function Dashboard() {
     fetchAllData();
   }, []);
 
+  useEffect(() => {
+    const handleRealTimeUpdate = (e) => {
+      const data = e.detail;
+      console.log("WS DASHBOARD RECIEVED:", data);
+      
+      if (data.type === 'reminder_created' || data.type === 'reminder_updated') {
+        setReminders((prev) => {
+          const existsIndex = prev.findIndex(r => r.id === data.message.id);
+          if (existsIndex !== -1) {
+            const newArray = [...prev];
+            newArray[existsIndex] = data.message;
+            return newArray;
+          }
+          return [data.message, ...prev];
+        });
+      } else if (data.type === 'reminder_deleted') {
+        setReminders((prev) => prev.filter(r => r.id !== data.message.id));
+      }
+    };
+
+    window.addEventListener('ws_message', handleRealTimeUpdate);
+    return () => window.removeEventListener('ws_message', handleRealTimeUpdate);
+  }, []);
+
   const handleToggleDone = async (reminder) => {
     setReminders(prev => prev.map(r =>
       r.id === reminder.id ? { ...r, is_done: !reminder.is_done } : r
