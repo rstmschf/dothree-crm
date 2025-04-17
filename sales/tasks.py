@@ -82,8 +82,8 @@ def check_upcoming_reminders():
                         "type": "send_notification",
                         "notification_type": "reminder_alert",
                         "message": {
-                            "title": "Скоро событие!",
-                            "text": f"Через час: {r.text} (Сделка: {r.deal.title})",
+                            "title": "Event soon!",
+                            "text": f"In 1 hour: {r.text} (Deal: {r.deal.title})",
                             "deal_id": r.deal.id,
                             "urgency": "warning",
                         },
@@ -105,8 +105,8 @@ def check_upcoming_reminders():
                         "type": "send_notification",
                         "notification_type": "reminder_alert",
                         "message": {
-                            "title": "Событие начинается!",
-                            "text": f"Через 5 минут: {r.text}",
+                            "title": "Event soon!",
+                            "text": f"In 5 minutes: {r.text}",
                             "deal_id": r.deal.id,
                             "urgency": "danger",
                         },
