@@ -25,6 +25,7 @@ function DealDetails() {
 
   const [newComment, setNewComment] = useState('');
   const [file, setFile] = useState(null);
+  const [aiTrigger, setAiTrigger] = useState(false);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +91,7 @@ function DealDetails() {
     const formData = new FormData();
     formData.append('deal', id);
     formData.append('text', newComment);
+    formData.append('trigger', aiTrigger ? 'true' : 'false');
     if (file) {
       formData.append('attachment', file);
     }
@@ -100,6 +102,7 @@ function DealDetails() {
       setComments([response.data, ...comments]);
       setNewComment('');
       setFile(null);
+      setAiTrigger(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
     } catch (err) {
@@ -264,14 +267,24 @@ function DealDetails() {
                 />
 
                 <div className="flex justify-between items-center">
-                  {/* File upload button */}
                   <input
                     type="file"
                     className="file-input file-input-bordered file-input-sm w-full max-w-xs"
                     onChange={(e) => setFile(e.target.files[0])}
                     ref={fileInputRef}
                   />
-                  <button type="submit" className="btn btn-primary btn-sm">Add Note</button>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        className="toggle toggle-sm toggle-primary"
+                        checked={aiTrigger}
+                        onChange={(e) => setAiTrigger(e.target.checked)}
+                      />
+                      AI
+                    </label>
+                    <button type="submit" className="btn btn-primary btn-sm">Add Note</button>
+                  </div>
                 </div>
               </form>
 

@@ -15,7 +15,7 @@ class IsManagerOrAdmin(BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role in ("admin", "manager")
+            and request.user.is_management
         )
 
 
@@ -24,7 +24,7 @@ class IsOwnerOrManagerOrAdmin(BasePermission):
         return bool(request.user and request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
-        if getattr(request.user, "role", None) in ("admin", "manager"):
+        if getattr(request.user, "is_management", None):
             return True
 
         owner = getattr(obj, "owner", None)
@@ -36,3 +36,12 @@ class IsOwnerOrManagerOrAdmin(BasePermission):
             return True
 
         return False
+
+
+class IsNotGuest(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role != "guest"
+        )

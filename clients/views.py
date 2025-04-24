@@ -8,21 +8,25 @@ from accounts.permissions import IsOwnerOrManagerOrAdmin, IsManagerOrAdmin
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
     filterset_fields = ("owner", "industry", "is_active")
     search_fields = ("name", "website", "address")
     ordering_fields = ("created_at", "name")
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
 
     def get_permissions(self):
-        if self.action == 'destroy':
+        if self.action == "destroy":
             return [permissions.IsAuthenticated(), IsManagerOrAdmin()]
         return super().get_permissions()
 
     def get_queryset(self):
         qs = Company.objects.select_related("owner").filter(is_active=True)
         user = self.request.user
-        if getattr(user, "role", None) in ("admin", "manager"):
+        if user.is_management:
             return qs
         return qs.filter(owner=user)
 
@@ -37,21 +41,25 @@ class CompanyViewSet(viewsets.ModelViewSet):
 
 class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
-    filter_backends = (DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter,)
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
     filterset_fields = ("company", "owner", "is_primary")
     search_fields = ("first_name", "last_name", "email", "phone", "position")
     ordering_fields = ("created_at", "first_name")
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
 
     def get_permissions(self):
-        if self.action == 'destroy':
+        if self.action == "destroy":
             return [permissions.IsAuthenticated(), IsManagerOrAdmin()]
         return super().get_permissions()
 
     def get_queryset(self):
         qs = Contact.objects.select_related("company", "owner").all()
         user = self.request.user
-        if getattr(user, "role", None) in ("admin", "manager"):
+        if user.is_management:
             return qs
         return qs.filter(Q(owner=user) | Q(company__owner=user))
 
@@ -59,7 +67,7 @@ class ContactViewSet(viewsets.ModelViewSet):
         company = serializer.validated_data.get("company")
         user = self.request.user
 
-        if getattr(user, "role", None) in ("admin", "manager"):
+        if user.is_management:
             serializer.save(owner=user)
             return
 

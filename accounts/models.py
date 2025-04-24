@@ -1,8 +1,11 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
 class User(AbstractUser):
     class Role(models.TextChoices):
+        GUEST = "guest", "Guest"
         ADMIN = "admin", "Admin"
         MANAGER = "manager", "Manager"
         SALES = "sales", "Sales"
@@ -10,9 +13,14 @@ class User(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=Role.choices,
-        default=Role.SALES,
+        default=Role.GUEST,
     )
-
+    telegram_chat_id = models.CharField(
+        max_length=100, blank=True, null=True, unique=True
+    )
+    telegram_sync_token = models.UUIDField(
+        default=uuid.uuid4, editable=False, unique=True
+    )
     email = models.EmailField(unique=True)
 
     def delete(self, using=None, keep_parents=False):
@@ -21,3 +29,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.role})"
+
+    @property
+    def is_management(self):
+        return self.role in ("admin", "manager")
