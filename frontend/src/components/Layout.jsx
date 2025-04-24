@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 function Layout() {
   const location = useLocation();
   const [fullName, setFullName] = useState('');
+  const [isTgLoading, setIsTgLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('access');
@@ -22,6 +23,35 @@ function Layout() {
     window.location.href = '/login';
   };
 
+  const handleTelegramLinkClick = async () => {
+    const token = localStorage.getItem('access');
+    if (!token) return;
+
+    setIsTgLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/accounts/telegram/link/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.telegram_link) {
+          window.open(data.telegram_link, '_blank');
+        }
+      } else {
+        console.error('Telegram link connection error:', response.status);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+    } finally {
+      setIsTgLoading(false);
+    }
+  };
+
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
@@ -38,8 +68,16 @@ function Layout() {
           </div>
 
           <div className="flex-none flex items-center gap-2">
-            <button className="btn btn-sm btn-ghost normal-case text-base">
-              {fullName}
+            <button 
+              className="btn btn-sm btn-ghost normal-case text-base"
+              onClick={handleTelegramLinkClick}
+              disabled={isTgLoading}
+            >
+              {isTgLoading ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                fullName
+              )}
             </button>
 
             <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error">
@@ -79,4 +117,3 @@ function Layout() {
 }
 
 export default Layout;
-
