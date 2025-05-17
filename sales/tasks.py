@@ -80,67 +80,66 @@ def check_upcoming_reminders():
     channel_layer = get_channel_layer()
 
     time_1h_from_now = now + timedelta(hours=1)
-    if Reminder.objects.all().exists():
-        reminders_1h = Reminder.objects.filter(
-            is_done=False, reminded_1h=False, date__lte=time_1h_from_now, date__gt=now
-        )
+    reminders_1h = Reminder.objects.select_related("deal","owner").filter(
+        is_done=False, reminded_1h=False, date__lte=time_1h_from_now, date__gt=now
+    )
 
-        for r in reminders_1h:
-            if r.owner:
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{r.owner.id}",
-                    {
-                        "type": "send_notification",
-                        "notification_type": "reminder_alert",
-                        "message": {
-                            "title": "Event soon!",
-                            "text": f"In 1 hour: {r.text} (Deal: {r.deal.title})",
-                            "deal_id": r.deal.id,
-                            "urgency": "warning",
-                        },
+    for r in reminders_1h:
+        if r.owner:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{r.owner.id}",
+                {
+                    "type": "send_notification",
+                    "notification_type": "reminder_alert",
+                    "message": {
+                        "title": "Event soon!",
+                        "text": f"In 1 hour: {r.text} (Deal: {r.deal.title})",
+                        "deal_id": r.deal.id,
+                        "urgency": "warning",
                     },
+                },
+            )
+            if r.owner.telegram_chat_id:
+                msg = (
+                    f"Reminder!\n\n"
+                    f"Deal: {r.deal.title}\n"
+                    f"Task: {r.text}\n"
+                    f"Time: {r.date.strftime('%H:%M')}"
                 )
-                if r.owner.telegram_chat_id:
-                    msg = (
-                        f"Reminder!\n\n"
-                        f"Deal: {r.deal.title}\n"
-                        f"Task: {r.text}\n"
-                        f"Time: {r.date.strftime('%H:%M')}"
-                    )
-                    send_telegram_message_task.delay(r.owner.telegram_chat_id, msg)
-            r.reminded_1h = True
-            r.save(update_fields=["reminded_1h"])
+                send_telegram_message_task.delay(r.owner.telegram_chat_id, msg)
+        r.reminded_1h = True
+        r.save(update_fields=["reminded_1h"])
 
-        time_5m_from_now = now + timedelta(minutes=5)
-        reminders_5m = Reminder.objects.filter(
-            is_done=False, reminded_5m=False, date__lte=time_5m_from_now, date__gt=now
-        )
+    time_5m_from_now = now + timedelta(minutes=5)
+    reminders_5m = Reminder.objects.select_related("deal","owner").filter(
+        is_done=False, reminded_5m=False, date__lte=time_5m_from_now, date__gt=now
+    )
 
-        for r in reminders_5m:
-            if r.owner:
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{r.owner.id}",
-                    {
-                        "type": "send_notification",
-                        "notification_type": "reminder_alert",
-                        "message": {
-                            "title": "Event soon!",
-                            "text": f"In 5 minutes: {r.text}",
-                            "deal_id": r.deal.id,
-                            "urgency": "danger",
-                        },
+    for r in reminders_5m:
+        if r.owner:
+            async_to_sync(channel_layer.group_send)(
+                f"user_{r.owner.id}",
+                {
+                    "type": "send_notification",
+                    "notification_type": "reminder_alert",
+                    "message": {
+                        "title": "Event soon!",
+                        "text": f"In 5 minutes: {r.text}",
+                        "deal_id": r.deal.id,
+                        "urgency": "danger",
                     },
+                },
+            )
+            if r.owner.telegram_chat_id:
+                msg = (
+                    f"Reminder!\n\n"
+                    f"Deal: {r.deal.title}\n"
+                    f"Task: {r.text}\n"
+                    f"Time: {r.date.strftime('%H:%M')}"
                 )
-                if r.owner.telegram_chat_id:
-                    msg = (
-                        f"Reminder!\n\n"
-                        f"Deal: {r.deal.title}\n"
-                        f"Task: {r.text}\n"
-                        f"Time: {r.date.strftime('%H:%M')}"
-                    )
-                    send_telegram_message_task.delay(r.owner.telegram_chat_id, msg)
-            r.reminded_5m = True
-            r.save(update_fields=["reminded_5m"])
+                send_telegram_message_task.delay(r.owner.telegram_chat_id, msg)
+        r.reminded_5m = True
+        r.save(update_fields=["reminded_5m"])
 
 
 @shared_task

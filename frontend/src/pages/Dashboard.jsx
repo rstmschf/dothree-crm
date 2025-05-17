@@ -89,7 +89,7 @@ function Dashboard() {
     ));
 
     try {
-      await api.patch(`sales/reminders/${reminder.id}/`, { is_done: !reminder.is_done });
+      await api.post(`sales/reminders/${reminder.id}/toggle/`);
     } catch (err) {
       console.error("Error updating status", err);
       setReminders(prev => prev.map(r =>

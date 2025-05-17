@@ -27,6 +27,9 @@ function ProtectedRoute({ children }) {
 
 function App() {
   useEffect(() => {
+    const token = localStorage.getItem('access');
+    if (!token) return;
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(`${protocol}//${window.location.host}/ws/notifications/`);
 

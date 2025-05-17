@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.conf import settings
 import requests
 from django.db import transaction
-from celery import shared_task
 import logging
 
 logger = logging.getLogger(__name__)

@@ -24,6 +24,9 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(
                 self.room_group_name, self.channel_name
             )
+            await self.channel_layer.group_discard(
+                "management_group", self.channel_name
+            )
 
     async def send_notification(self, event):
         message = event["message"]
@@ -36,6 +39,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
 class DealConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        user = self.scope["user"]
+
+        if user.is_anonymous:
+            await self.close()
+            return
+
         self.deal_id = self.scope["url_route"]["kwargs"]["deal_id"]
         self.room_group_name = f"deal_{self.deal_id}"
 
