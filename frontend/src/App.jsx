@@ -31,7 +31,7 @@ function App() {
     if (!token) return;
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/notifications/`);
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/notifications/?token=${token}`);
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);

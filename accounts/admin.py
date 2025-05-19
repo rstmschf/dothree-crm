@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
     list_display = ("id", "username", "email", "role", "is_staff", "is_active")
     list_filter = ("role", "is_staff", "is_active")
 
-    fieldsets = UserAdmin.fieldsets + (("CRM fields", {"fields": ("role",)}),)
+    fieldsets = UserAdmin.fieldsets + (("CRM fields", {"fields": ("role", "telegram_chat_id")}),)
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("CRM fields", {"fields": ("role", "email")}),
