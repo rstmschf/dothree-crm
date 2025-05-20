@@ -25,7 +25,7 @@ function Dashboard() {
     const fetchDeals = async () => {
       try {
         const res = await api.get('sales/deals/');
-        setDeals(res.data);
+        setDeals(res.data.results);
       } catch (err) {
         console.error("Failed to load deals", err);
       }
@@ -44,7 +44,7 @@ function Dashboard() {
     const fetchReminders = async () => {
       try {
         const res = await api.get('sales/reminders/');
-        setReminders(res.data);
+        setReminders(res.data.results);
       } catch (err) {
         console.error("Failed to load reminders", err);
       }

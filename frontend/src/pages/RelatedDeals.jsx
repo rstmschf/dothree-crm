@@ -24,8 +24,8 @@ function RelatedDeals() {
       ]);
 
       setCompany(companyRes.data);
-      setDeals(dealsRes.data);
-      setStages(stagesRes.data);
+      setDeals(dealsRes.data.results);
+      setStages(stagesRes.data.results);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching company deals:", err);

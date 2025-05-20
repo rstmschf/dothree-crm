@@ -32,8 +32,9 @@ function DealDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('access');
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/deals/${id}/`);
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/deals/${id}/?token=${token}`);
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -66,14 +67,14 @@ function DealDetails() {
       setDeal(dealData);
 
       const commentsRes = await api.get(`sales/notes/?deal=${id}`);
-      setComments(commentsRes.data);
+      setComments(commentsRes.data.results);
 
       if (dealData.company) {
         const companyRes = await api.get(`clients/companies/${dealData.company}/`);
         setCompany(companyRes.data);
 
         const contactsRes = await api.get(`clients/contacts/?company=${dealData.company}`);
-        setContacts(contactsRes.data);
+        setContacts(contactsRes.data.results);
       }
 
       setLoading(false);

@@ -29,7 +29,7 @@ function Companies() {
   const fetchCompanies = async () => {
     try {
       const response = await api.get('clients/companies/');
-      setCompanies(response.data);
+      setCompanies(response.data.results);
       setLoading(false);
     } catch (err) {
       setError('Failed to load companies.');

@@ -41,11 +41,11 @@ function Deals() {
         api.get('sales/leads/')
       ]);
 
-      setDeals(dealsRes.data);
+      setDeals(dealsRes.data.results);
       // Sort stages by the 'order' field provided by serializer
-      setStages(stagesRes.data.sort((a, b) => a.order - b.order));
-      setCompanies(companiesRes.data);
-      setLeads(leadsRes.data);
+      setStages(stagesRes.data.results.sort((a, b) => a.order - b.order));
+      setCompanies(companiesRes.data.results);
+      setLeads(leadsRes.data.results);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching deal data:", err);

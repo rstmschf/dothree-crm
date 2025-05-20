@@ -31,7 +31,7 @@ function Contacts() {
   const fetchContacts = async () => {
     try {
       const response = await api.get('clients/contacts/');
-      setContacts(response.data);
+      setContacts(response.data.results);
       setLoading(false);
     } catch (err) {
       setError('Failed to load contacts.');
@@ -42,7 +42,7 @@ function Contacts() {
   const fetchCompanies = async () => {
     try {
       const response = await api.get('clients/companies/');
-      setCompanies(response.data);
+      setCompanies(response.data.results);
     } catch (err) { console.error("Error fetching companies:", err); }
   };
 

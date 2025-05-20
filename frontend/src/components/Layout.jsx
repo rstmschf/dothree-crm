@@ -29,7 +29,7 @@ function Layout() {
 
     setIsTgLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/accounts/telegram/link/', {
+      const response = await fetch('/api/accounts/telegram/link/', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
