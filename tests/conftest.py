@@ -6,6 +6,15 @@ from rest_framework.test import APIClient
 User = get_user_model()
 
 
+@pytest.fixture(autouse=True)
+def use_in_memory_channel_layer(settings):
+    settings.CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
+
+
 @pytest.fixture
 def api_client():
     return APIClient()

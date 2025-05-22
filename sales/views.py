@@ -94,7 +94,7 @@ class ActivityLogViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AnalyticsView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin]
+    permission_classes = [permissions.IsAuthenticated,]
 
     def get(self, request):
         user = request.user
@@ -174,7 +174,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             note = serializer.save(
                 created_by=user, original_text=raw_text, text="Processing..."
             )
-            process_ai_note_task.delay(note.id, raw_text.lower().strip())
+            process_ai_note_task.delay(note.id, raw_text.strip())
         else:
             note = serializer.save(created_by=user)
 

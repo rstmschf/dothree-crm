@@ -26,8 +26,8 @@ def test_list_and_retrieve(auth_api_client, user):
     list_url = reverse("company-list")
     r = auth_api_client.get(list_url)
     assert r.status_code == 200
-    assert any(item["id"] == c1.id for item in r.data)
-    assert any(item["id"] == c2.id for item in r.data)
+    assert any(item["id"] == c1.id for item in r.data["results"])
+    assert any(item["id"] == c2.id for item in r.data["results"])
 
     detail_url = reverse("company-detail", args=[c1.id])
     r2 = auth_api_client.get(detail_url)
