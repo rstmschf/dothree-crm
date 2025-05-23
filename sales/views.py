@@ -41,9 +41,17 @@ class StageViewSet(viewsets.ModelViewSet):
 
 
 class LeadViewSet(viewsets.ModelViewSet):
-    queryset = Lead.objects.select_related("company", "contact", "owner")
     serializer_class = LeadSerializer
     permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Lead.objects.select_related("company", "contact", "owner")
+        
+        if not user.is_management:
+            queryset = queryset.filter(owner=user)
+
+        return queryset
 
 
 class DealViewSet(viewsets.ModelViewSet):
