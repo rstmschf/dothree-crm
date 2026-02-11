@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "corsheaders",
+    "django_filters",
     "reports",
     "sales",
     "tasks",
@@ -82,6 +83,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "accounts.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -109,15 +111,19 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
 }
 
+
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Todo API",
-    "DESCRIPTION": "API documentation for the Todo application",
-    "VERSION": "v1",
-    "SERVERS": [
-        {"url": "http://localhost:8000", "description": "local"}
-    ],
+    "TITLE": "Dothree CRM API",
+    "DESCRIPTION": "CRM system API for leads, deals, tasks",
+    "VERSION": "v1.0.0",
+    "SERVERS": [{"url": "http://localhost:8000", "description": "local"}],
     "CONTACT": {"name": "test", "email": "test@test.com"},
     "LICENSE": {"name": "MIT"},
     "COMPONENT_SPLIT_REQUEST": True,
