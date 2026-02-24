@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Stage, Lead, Deal, ActivityLog
+from .models import Stage, Lead, Deal, ActivityLog, Note
 
 @admin.register(Stage)
 class StageAdmin(admin.ModelAdmin):
@@ -25,3 +25,17 @@ class ActivityLogAdmin(admin.ModelAdmin):
     list_display = ("id", "actor", "verb", "created_at")
     search_fields = ("verb", "message", "actor__username")
     readonly_fields = ("actor", "verb", "message", "content_type", "object_id", "created_at")
+
+@admin.register(Note)
+class NoteAdmin(admin.ModelAdmin):
+    list_display = ("id", "deal", "created_by", "short_text", "created_at",)
+    list_filter = ("deal", "created_by", "created_at")
+    search_fields = ("deal__title", "created_by__username")
+    
+    def short_text(self, obj):
+        if len(obj.text) > 50:
+            return f"{obj.text[:50]}..."
+        return obj.text
+
+    short_text.short_description = "Title"
+

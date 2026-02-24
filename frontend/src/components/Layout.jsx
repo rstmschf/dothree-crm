@@ -1,7 +1,21 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react'; // Не забудьте импортировать хуки!
 
 function Layout() {
   const location = useLocation();
+  const [fullName, setFullName] = useState(''); // Состояние для имени
+
+  useEffect(() => {
+    const token = localStorage.getItem('access');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setFullName(payload.full_name || 'User'); 
+      } catch (e) {
+        console.error("Could not parse JWT token.");
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -20,11 +34,19 @@ function Layout() {
             </label>
           </div>
           <div className="flex-1">
-            <span className="text-xl font-bold lg:hidden">Dothree CRM</span>
+            <span className="text-xl font-bold lg:hidden">My CRM</span>
           </div>
-          <div className="flex-none">
-            <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error">Logout</button>
+          
+          <div className="flex-none flex items-center gap-2">
+            <button className="btn btn-sm btn-ghost normal-case text-base">
+              {fullName}
+            </button>
+            
+            <button onClick={handleLogout} className="btn btn-sm btn-outline btn-error">
+              Logout
+            </button>
           </div>
+
         </div>
 
         <div className="p-8">
@@ -36,7 +58,10 @@ function Layout() {
         <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
         <ul className="menu p-4 w-64 min-h-full bg-base-100 text-base-content">
           <li className="mb-6 mt-2">
-            <span className="text-2xl font-bold text-primary">Dothree CRM</span>
+            <span className="text-2xl font-bold text-primary">My CRM</span>
+          </li>
+          <li>
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Overview</Link>
           </li>
           <li>
             <Link to="/contacts" className={location.pathname === '/contacts' ? 'active' : ''}>Contacts</Link>
