@@ -104,7 +104,6 @@ function Companies() {
                   <th>Company Name</th>
                   <th>Industry</th>
                   <th>Website</th>
-                  <th>Phone</th>
                   <th>Manager</th>
                   <th className="text-right">Actions</th>
                 </tr>
@@ -123,15 +122,6 @@ function Companies() {
                             {company.website}
                           </a>
                         ) : 'N/A'}
-                      </td>
-                      <td>
-                        <div 
-                          onClick={() => handleCopyPhone(company.id, company.phone)}
-                          className="badge badge-primary badge-outline cursor-pointer hover:bg-primary hover:text-white transition-colors"
-                          title="Click to copy"
-                        >
-                          {copiedPhoneId === company.id ? "Copied!" : (company.phone || 'N/A')}
-                        </div>
                       </td>
                       <td>{company.owner_name || 'N/A'}</td>
                       <td className="text-right space-x-2">
@@ -168,13 +158,9 @@ function Companies() {
                 <input type="text" name="website" value={formData.website} onChange={handleFormChange} className="input input-bordered w-full" placeholder="www.example.com" />
               </div>
               <div className="form-control w-1/2">
-                <label className="label"><span className="label-text">Phone</span></label>
-                <input type="text" name="phone" value={formData.phone} onChange={handleFormChange} className="input input-bordered w-full" />
+                <label className="label"><span className="label-text">Manager (Owner)</span></label>
+                <input type="text" name="owner_name" value={formData.owner_name} className="input input-bordered w-full bg-base-200 text-base-content/60 cursor-not-allowed" readOnly disabled />
               </div>
-            </div>
-            <div className="form-control">
-              <label className="label"><span className="label-text">Manager (Owner)</span></label>
-              <input type="text" name="owner_name" value={formData.owner_name} className="input input-bordered w-full bg-base-200 text-base-content/60 cursor-not-allowed" readOnly disabled />
             </div>
             <div className="modal-action">
               <button type="button" className="btn" onClick={() => document.getElementById('company_modal').close()}>Cancel</button>

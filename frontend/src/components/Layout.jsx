@@ -44,6 +44,9 @@ function Layout() {
           <li>
             <Link to="/companies" className={location.pathname === '/companies' ? 'active' : ''}>Companies</Link>
           </li>
+          <li>
+            <Link to="/deals" className={location.pathname === '/deals' ? 'active' : ''}>Deals</Link>
+          </li>
         </ul>
       </div>
     </div>

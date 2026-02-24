@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Contacts from './pages/Contacts';
 import Companies from './pages/Companies';
+import Deals from './pages/Deals';
 
 // Route Guards
 function PublicRoute({ children }) {
@@ -33,6 +34,7 @@ function App() {
           <Route index element={<Navigate to="/contacts" replace />} />
           <Route path="contacts" element={<Contacts />} />
           <Route path="companies" element={<Companies />} />
+          <Route path="deals" element={<Deals />} />
         </Route>
       </Routes>
     </BrowserRouter>

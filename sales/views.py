@@ -5,24 +5,30 @@ from .models import Stage, Lead, Deal, ActivityLog
 from .serializers import StageSerializer, LeadSerializer, DealSerializer, DealMoveStageSerializer, ActivityLogSerializer
 from .services import move_deal_to_stage
 from django.shortcuts import get_object_or_404
-
+from accounts.permissions import IsOwnerOrManagerOrAdmin
 
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     serializer_class = StageSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
 
 
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.select_related("company", "contact", "owner").all()
     serializer_class = LeadSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
 
 
 class DealViewSet(viewsets.ModelViewSet):
-    queryset = Deal.objects.select_related("stage", "company", "owner").all()
     serializer_class = DealSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin)
+
+    def get_queryset(self):
+        qs = Deal.objects.select_related("stage", "company", "owner").all()
+        user = self.request.user
+        if getattr(user, "role", None) in ("admin", "manager"):
+            return qs
+        return qs.filter(owner=user)
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, owner=self.request.user)

@@ -10,7 +10,7 @@ function Contacts() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [copiedPhoneId, setCopiedPhoneId] = useState(null); // Tracks which phone was clicked
 
-  const [modalMode, setModalMode] = useState('add'); 
+  const [modalMode, setModalMode] = useState('add');
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState({
     first_name: '', last_name: '', email: '', company: '', phone: '', owner_name: ''
@@ -41,7 +41,7 @@ function Contacts() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await api.get('clients/companies/'); 
+      const response = await api.get('clients/companies/');
       setCompanies(response.data);
     } catch (err) { console.error("Error fetching companies:", err); }
   };
@@ -52,7 +52,7 @@ function Contacts() {
     navigator.clipboard.writeText(phone);
     setCopiedPhoneId(id);
     // Reset the "Copied!" message after 2 seconds
-    setTimeout(() => setCopiedPhoneId(null), 2000); 
+    setTimeout(() => setCopiedPhoneId(null), 2000);
   };
 
   const openAddModal = () => {
@@ -77,10 +77,10 @@ function Contacts() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { owner_name, ...dataToSend } = formData; 
+      const { owner_name, ...dataToSend } = formData;
       if (modalMode === 'add') {
         const response = await api.post('clients/contacts/', dataToSend);
-        setContacts([...contacts, response.data]); 
+        setContacts([...contacts, response.data]);
       } else {
         const response = await api.put(`clients/contacts/${currentId}/`, dataToSend);
         setContacts(contacts.map(c => c.id === currentId ? response.data : c));
@@ -93,7 +93,7 @@ function Contacts() {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
     try {
       await api.delete(`clients/contacts/${id}/`);
-      setContacts(contacts.filter(c => c.id !== id)); 
+      setContacts(contacts.filter(c => c.id !== id));
     } catch (err) { alert("Failed to delete contact."); }
   };
 
@@ -130,18 +130,15 @@ function Contacts() {
                       <td className="font-medium">{contact.first_name} {contact.last_name}</td>
                       <td>{contact.email}</td>
                       <td>{contact.company_name || 'N/A'}</td>
-                      
-                      {/* NEW: Click to copy Phone Number */}
                       <td>
-                        <div 
+                        <div
                           onClick={() => handleCopyPhone(contact.id, contact.phone)}
-                          className="badge badge-primary badge-outline cursor-pointer hover:bg-primary hover:text-white transition-colors"
+                          className="badge badge-primary badge-outline w-36 justify-center cursor-pointer hover:bg-primary hover:text-white transition-colors"
                           title="Click to copy"
                         >
                           {copiedPhoneId === contact.id ? "Copied!" : (contact.phone || 'N/A')}
                         </div>
                       </td>
-                      
                       <td>{contact.owner_name || 'N/A'}</td>
                       <td className="text-right space-x-2">
                         <button onClick={() => openEditModal(contact)} className="btn btn-xs btn-outline">Edit</button>

@@ -31,6 +31,8 @@ class ContactSerializer(serializers.ModelSerializer):
 
 
 class CompanySerializer(serializers.ModelSerializer):
+    owner_name = serializers.ReadOnlyField(source="owner.get_full_name")
+
     class Meta:
         model = Company
         fields = (
@@ -43,6 +45,7 @@ class CompanySerializer(serializers.ModelSerializer):
             "is_active",
             "created_at",
             "updated_at",
+            "owner_name",
         )
         read_only_fields = ("owner", "created_at", "updated_at")
 
