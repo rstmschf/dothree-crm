@@ -8,6 +8,7 @@ import Companies from './pages/Companies';
 import Deals from './pages/Deals';
 import Dashboard from './pages/Dashboard';
 import RelatedDeals from './pages/RelatedDeals';
+import NotFound from './pages/NotFound';
 
 // Route Guards
 function PublicRoute({ children }) {
@@ -38,6 +39,7 @@ function App() {
           <Route path="deals" element={<Deals />} />
           <Route path="deals/:id" element={<DealDetails />} />
           <Route path="companies/:id/deals" element={<RelatedDeals />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </BrowserRouter>
