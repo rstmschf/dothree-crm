@@ -81,6 +81,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "created_by_name",
+            "attachment"
         )
         read_only_fields = ("created_by", "created_at", "updated_at")
 
