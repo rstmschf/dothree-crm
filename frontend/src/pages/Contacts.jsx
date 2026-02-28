@@ -99,7 +99,7 @@ function Contacts() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Contacts</h1>
         <button onClick={openAddModal} className="btn btn-primary">+ New Contact</button>
       </div>
