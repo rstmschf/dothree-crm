@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
-from .models import Stage, Lead, Deal, ActivityLog, Note
+from accounts.permissions import IsAdmin
+from .models import Stage, Lead, Deal, ActivityLog, Note, Reminder
 from .serializers import (
     StageSerializer,
     LeadSerializer,
@@ -11,6 +12,7 @@ from .serializers import (
     DealMoveStageSerializer,
     ActivityLogSerializer,
     NoteSerializer,
+    ReminderSerializer,
 )
 from .services import move_deal_to_stage, format_manager_note_with_ai
 from django.shortcuts import get_object_or_404
@@ -22,7 +24,7 @@ from accounts.permissions import IsOwnerOrManagerOrAdmin
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     serializer_class = StageSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsAdmin)
 
 
 class LeadViewSet(viewsets.ModelViewSet):
@@ -37,7 +39,7 @@ class DealViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Deal.objects.all()
+        queryset = Deal.objects.select_related('company').all()
 
         is_management = getattr(user, "role", None) in ("admin", "manager")
         if not is_management:
@@ -55,6 +57,10 @@ class DealViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user, owner=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.is_system:
+            raise PermissionDenied("System stages can not be deleted.")
 
     @action(detail=True, methods=["post"], url_path="move-stage")
     def move_stage(self, request, pk=None):
@@ -135,11 +141,11 @@ class AnalyticsView(APIView):
 
 class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin]
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Note.objects.all()
+        queryset = Note.objects.select_related("created_by").all()
 
         is_management = getattr(user, "role", None) in ("admin", "manager")
 
@@ -178,3 +184,35 @@ class NoteViewSet(viewsets.ModelViewSet):
                 return
 
         serializer.save(created_by=user)
+
+class ReminderViewSet(viewsets.ModelViewSet):
+    serializer_class = ReminderSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrManagerOrAdmin]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Reminder.objects.select_related("owner", "deal").all()
+
+        is_management = getattr(user, "role", None) in ("admin", "manager")
+
+        if not is_management:
+            queryset = queryset.filter(owner=user)
+
+        return queryset
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def toggle(self, request, pk=None):
+        reminder = self.get_object()
+        reminder.is_done = not reminder.is_done
+        reminder.save(update_fields=["is_done", "updated_at"])
+        
+        return Response({
+            "id": reminder.id,
+            "is_done": reminder.is_done,
+            "status": "success"
+        })
+
+
