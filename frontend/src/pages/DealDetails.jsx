@@ -168,14 +168,16 @@ function DealDetails() {
                           {new Date(comment.created_at).toLocaleString()}
                         </time>
                       </div>
-                      <div className="chat-bubble bg-base-100 text-base-content shadow-md border border-base-200 whitespace-pre-wrap break-words">
-                        {comment.text}
+                      <div className="chat-bubble bg-base-100 text-base-content shadow-md border border-base-200">
+
+                        <div className="whitespace-pre-wrap break-words">
+                          {comment.text}
+                        </div>
 
                         {comment.attachment && (
                           <div className="mt-3 pt-3 border-t border-base-300">
                             {(() => {
                               const { name, ext } = getFileParts(comment.attachment);
-
                               return (
                                 <a
                                   href={comment.attachment}
@@ -184,7 +186,9 @@ function DealDetails() {
                                   title={name + ext}
                                   className="btn btn-sm btn-outline btn-primary w-[200px] justify-start flex-nowrap overflow-hidden"
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                  </svg>
 
                                   <div className="flex flex-nowrap overflow-hidden text-left">
                                     <span className="truncate">{name}</span>
@@ -194,6 +198,20 @@ function DealDetails() {
                               );
                             })()}
                           </div>
+                        )}
+
+                        {comment.original_text && (
+                          <details className="mt-3 pt-3 border-t border-base-300 group cursor-pointer">
+                            <summary className="text-xs opacity-60 font-medium hover:opacity-100 transition-opacity list-none flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                              </svg>
+                              View original text
+                            </summary>
+                            <div className="mt-2 text-sm opacity-70 whitespace-pre-wrap pl-4 border-l-2 border-base-300 italic">
+                              {comment.original_text}
+                            </div>
+                          </details>
                         )}
                       </div>
                     </div>

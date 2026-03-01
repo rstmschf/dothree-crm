@@ -3,7 +3,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
-from accounts.permissions import IsAdmin
 from .models import Stage, Lead, Deal, ActivityLog, Note, Reminder
 from .serializers import (
     StageSerializer,
@@ -14,36 +13,28 @@ from .serializers import (
     NoteSerializer,
     ReminderSerializer,
 )
-from .services import move_deal_to_stage, format_manager_note_with_ai
+from .services import move_deal_to_stage
+from .tasks import process_ai_note_task
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
-from accounts.permissions import IsOwnerOrManagerOrAdmin
+from accounts.permissions import IsOwnerOrManagerOrAdmin, IsManagerOrAdmin
 
 
 class StageViewSet(viewsets.ModelViewSet):
     queryset = Stage.objects.all()
     serializer_class = StageSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        is_management = getattr(user, "role", None) in ("admin", "manager")
-        if not is_management:
-            raise PermissionDenied("You need to be Admin to do this")
-        serializer.save()
-
-    def perform_update(self, serializer):
-        user = self.request.user
-        is_management = getattr(user, "role", None) in ("admin", "manager")
-        if not is_management:
-            raise PermissionDenied("You need to be Admin to do this")
-        serializer.save()
+    
+    def get_permissions(self):
+        if self.action in ("create", "update", "partial_update", "destroy"):
+            return [permissions.IsAuthenticated(), IsManagerOrAdmin()]
+        return [permissions.IsAuthenticated()]
 
     def perform_destroy(self, instance):
         if instance.is_system:
             raise PermissionDenied("System stages can not be deleted.")
         instance.delete()
+
 
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.select_related("company", "contact", "owner").all()
@@ -183,16 +174,15 @@ class NoteViewSet(viewsets.ModelViewSet):
         if '@bot' in raw_text.lower():
             prompt_text = raw_text.lower().replace('@bot', '', 1).strip()
             
-            try:
-                ai_formatted_text = format_manager_note_with_ai(prompt_text)
-                
-                final_text = f"🤖:\n\n{ai_formatted_text}"
-                serializer.save(created_by=user, text=final_text)
-                return 
-                
-            except Exception as e:
-                raise ValidationError(f"❌ API Error: {str(e)}")
-
+            note = serializer.save(
+                created_by=user, 
+                original_text=raw_text,
+                text="⏳ *AI is working on it...*" 
+            )
+            
+            process_ai_note_task.delay(note.id, prompt_text)
+            return
+            
         serializer.save(created_by=user)
 
 class ReminderViewSet(viewsets.ModelViewSet):

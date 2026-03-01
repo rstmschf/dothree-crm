@@ -116,6 +116,7 @@ class ActivityLog(models.Model):
 class Note(models.Model):
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="notes")
     text = models.TextField(blank=True)
+    original_text = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -139,6 +140,8 @@ class Reminder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="reminders")
     date = models.DateTimeField(blank=False)
+    reminded_1h = models.BooleanField(default=False)
+    reminded_5m = models.BooleanField(default=False)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
