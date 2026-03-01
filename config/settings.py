@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     "django_filters",
     "reports",
     "sales",
-    "tasks",
     "clients",
     "accounts",
 ]
@@ -121,7 +120,7 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Dothree CRM API",
-    "DESCRIPTION": "CRM system API for leads, deals, tasks",
+    "DESCRIPTION": "CRM system API for leads, deals",
     "VERSION": "v1.0.0",
     "SERVERS": [{"url": "http://localhost:8000", "description": "local"}],
     "CONTACT": {"name": "test", "email": "test@test.com"},

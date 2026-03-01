@@ -138,7 +138,7 @@ function Dashboard() {
     <div className="space-y-4 relative pb-2">
       <h1 className="text-3xl font-bold">Sales Overview</h1>
 
-      {/* --- БЛОК АНАЛИТИКИ --- */}
+      {/* Analytics block  */}
       {error ? (
         <div className="alert alert-error shadow-sm">{error}</div>
       ) : metrics ? (
@@ -206,7 +206,7 @@ function Dashboard() {
         <div className="alert alert-warning shadow-sm">No analytics data available.</div>
       )}
 
-      {/* --- ТАБЛИЦА НАПОМИНАНИЙ --- */}
+      {/* Reminders table */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body p-4">
           <div className="flex justify-between items-center mb-4">
@@ -216,7 +216,7 @@ function Dashboard() {
             </button>
           </div>
 
-          {/* Контейнер с overflow-y-auto для скролла внутри таблицы */}
+          {/* Container with overflow-y-auto */}
           <div className="overflow-x-auto overflow-y-auto max-h-[25vh] border border-base-200 rounded-lg pr-2 custom-scrollbar">
             <table className="table table-pin-rows table-zebra w-full">
               <thead>
@@ -290,7 +290,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* --- МОДАЛЬНОЕ ОКНО --- */}
+      {/* --- Modal window --- */}
       {isModalOpen && (
         <dialog className="modal modal-open">
           <div className="modal-box">

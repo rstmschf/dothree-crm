@@ -7,7 +7,7 @@ function Deals() {
   const [stages, setStages] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [leads, setLeads] = useState([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -26,7 +26,7 @@ function Deals() {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.role === 'admin' || payload.role === 'manager') setIsAdmin(true);
-      } catch (e) {}
+      } catch (e) { }
     }
     fetchAllData();
   }, []);
@@ -40,7 +40,7 @@ function Deals() {
         api.get('clients/companies/'),
         api.get('sales/leads/')
       ]);
-      
+
       setDeals(dealsRes.data);
       // Sort stages by the 'order' field provided by serializer
       setStages(stagesRes.data.sort((a, b) => a.order - b.order));
@@ -60,7 +60,7 @@ function Deals() {
   };
 
   const handleDragOver = (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
   };
 
   const handleDrop = async (e, newStageId) => {
@@ -69,7 +69,7 @@ function Deals() {
     if (!dealId) return;
 
     const previousDeals = [...deals];
-    setDeals(deals.map(deal => 
+    setDeals(deals.map(deal =>
       deal.id.toString() === dealId ? { ...deal, stage: newStageId } : deal
     ));
 
@@ -86,10 +86,10 @@ function Deals() {
   // --- MODAL HANDLERS ---
   const openAddModal = () => {
     setModalMode('add');
-    setFormData({ 
-      title: '', value: '', currency: 'USD', 
+    setFormData({
+      title: '', value: '', currency: 'USD',
       stage: stages.length > 0 ? stages[0].id : '', // Default to first stage
-      lead: '', company: '', close_date: '', owner: 'Auto-assigned' 
+      lead: '', company: '', close_date: '', owner: 'Auto-assigned'
     });
     document.getElementById('deal_modal').showModal();
   };
@@ -153,8 +153,8 @@ function Deals() {
         <div className="flex overflow-x-auto space-x-6 pb-4 min-h-[60vh]">
           {/* Map through the Stages to create Kanban Columns */}
           {stages.map(stage => (
-            <div 
-              key={stage.id} 
+            <div
+              key={stage.id}
               className="bg-base-200 rounded-box w-80 min-w-[260px] p-4 flex flex-col shadow-inner"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage.id)}
@@ -169,7 +169,7 @@ function Deals() {
               <div className="flex-1 space-y-4 overflow-y-auto">
                 {/* Map through Deals belonging to this specific stage */}
                 {deals.filter(deal => deal.stage === stage.id).map(deal => (
-                  <div 
+                  <div
                     key={deal.id}
                     draggable
                     onDragStart={(e) => handleDragStart(e, deal.id)}
@@ -177,11 +177,10 @@ function Deals() {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="font-semibold">{deal.title}</h4>
-                      {/* Optional: Add visual indicators for Won/Lost stages */}
                       {stage.is_won && <span className="text-success text-xl">🎉</span>}
                       {stage.is_lost && <span className="text-error text-xl">❌</span>}
                     </div>
-                    
+
                     <div className="text-xl font-bold text-primary mb-2">
                       {deal.value ? `${deal.value} ${deal.currency}` : 'No value'}
                     </div>
@@ -209,7 +208,7 @@ function Deals() {
         <div className="modal-box w-11/12 max-w-3xl">
           <h3 className="font-bold text-lg mb-4">{modalMode === 'add' ? 'Add New Deal' : 'Edit Deal'}</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            
+
             {/* Row 1: Title & Value/Currency */}
             <div className="flex space-x-4">
               <div className="form-control w-1/2">

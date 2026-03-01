@@ -1,9 +1,9 @@
 import { Outlet, useLocation, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react'; // Не забудьте импортировать хуки!
+import { useState, useEffect } from 'react';
 
 function Layout() {
   const location = useLocation();
-  const [fullName, setFullName] = useState(''); // Состояние для имени
+  const [fullName, setFullName] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('access');
