@@ -1,17 +1,17 @@
-import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Автоматически создает суперюзера, если его еще нет в базе"
+    help = "Creates superuser for it doesn't yet exist"
 
     def handle(self, *args, **kwargs):
-        email = os.environ.get("SUPERUSER_EMAIL", "super@user.com")
-        password = os.environ.get("SUPERUSER_PASSWORD", "password")
-        username = os.environ.get("SUPERUSER_USERNAME", "superuser")
+        email = settings.SUPERUSER_EMAIL
+        password = settings.SUPERUSER_PASSWORD
+        username = settings.SUPERUSER_USERNAME
 
         if (
             User.objects.filter(username=username).exists()

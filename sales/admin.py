@@ -74,6 +74,6 @@ class NoteAdmin(admin.ModelAdmin):
 
 @admin.register(Reminder)
 class ReminderAdmin(admin.ModelAdmin):
-    list_display = ("id", "created_at", "deal", "owner", "date", "text")
+    list_display = ("id", "created_at", "deal", "owner", "date", "text", "reminded_1h", "reminded_5m")
     search_fields = ("deal", "owner", "text")
     list_filter = ("created_at", "owner", "deal")

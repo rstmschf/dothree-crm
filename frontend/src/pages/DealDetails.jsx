@@ -31,6 +31,30 @@ function DealDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}/ws/deals/${id}/`);
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === 'new_comment') {
+        setComments((prevComments) => {
+          const existingIndex = prevComments.findIndex(c => c.id === data.comment.id);
+
+          if (existingIndex !== -1) {
+            const newComments = [...prevComments];
+            newComments[existingIndex] = data.comment;
+            return newComments;
+          }
+          return [data.comment, ...prevComments];
+        });
+      }
+    };
+
+    return () => socket.close();
+  }, [id]);
+
+  useEffect(() => {
     fetchAllDealData();
   }, [id]);
 
