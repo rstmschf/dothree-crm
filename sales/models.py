@@ -5,6 +5,8 @@ from django.utils import timezone
 from clients.models import Company, Contact
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Index, Q
+
 
 
 class Stage(models.Model):
@@ -154,6 +156,21 @@ class Reminder(models.Model):
 
     class Meta:
         ordering = ("date",)
+        indexes = [
+            Index(
+                fields=['date'], 
+                condition=Q(is_done=False, reminded_1h=False),
+                name='idx_active_reminders_1h'
+            ),
+            
+            Index(
+                fields=['date'], 
+                condition=Q(is_done=False, reminded_5m=False),
+                name='idx_active_reminders_5m'
+            ),
+            
+            Index(fields=['owner', 'is_done']),
+        ]
 
     def __str__(self):
         status = "✅" if self.is_done else "🕒"
