@@ -16,8 +16,5 @@ venv/
 .idea/
 *.swp
 # Celery
-celerybeat-schedule
-celerybeat-schedule.db
-celerybeat-schedule.shm
-celerybeat-schedule.wal
+celerybeat-schedule*
 celerybeat.pid
