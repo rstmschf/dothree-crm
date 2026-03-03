@@ -6,10 +6,12 @@ from clients.models import Company, Contact
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Index, Q
+from safedelete.models import SafeDeleteModel
+from safedelete.models import SOFT_DELETE_CASCADE
 
 
-
-class Stage(models.Model):
+class Stage(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     name = models.CharField(max_length=100)
     order = models.PositiveIntegerField(default=0)
     is_won = models.BooleanField(default=False)
@@ -23,7 +25,8 @@ class Stage(models.Model):
         return self.name
 
 
-class Lead(models.Model):
+class Lead(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     title = models.CharField(max_length=255)
     source = models.CharField(max_length=100, blank=True, null=True)
     contact = models.ForeignKey(
@@ -57,7 +60,8 @@ class Lead(models.Model):
         return self.title
 
 
-class Deal(models.Model):
+class Deal(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     title = models.CharField(max_length=255)
     value = models.DecimalField(
         max_digits=12, decimal_places=2, default=Decimal("0.00")
@@ -96,7 +100,8 @@ class Deal(models.Model):
         return f"{self.title} ({self.value} {self.currency})"
 
 
-class ActivityLog(models.Model):
+class ActivityLog(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -115,7 +120,8 @@ class ActivityLog(models.Model):
         ordering = ("-created_at",)
 
 
-class Note(models.Model):
+class Note(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="notes")
     text = models.TextField(blank=True)
     original_text = models.TextField(blank=True, null=True)
@@ -136,7 +142,8 @@ class Note(models.Model):
     def __str__(self):
         return f"Note on {self.deal.title}: {self.text[:50]}..."
     
-class Reminder(models.Model):
+class Reminder(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     text = models.CharField(max_length=150, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

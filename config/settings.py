@@ -15,7 +15,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 SUPERUSER_EMAIL = env('SUPERUSER_EMAIL', default='super@user.com')
 SUPERUSER_PASSWORD = env('SUPERUSER_PASSWORD', default='password')
@@ -35,10 +35,12 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "corsheaders",
     "django_filters",
+    "safedelete",
     "reports",
     "sales",
     "clients",
     "accounts",
+    
 ]
 
 MIDDLEWARE = [
@@ -144,16 +146,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:80",
-    "http://127.0.0.1:80",
-    "http://localhost",
-    "http://127.0.0.1",
-]
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 SWAGGER_USE_COMPAT_RENDERERS = False
 

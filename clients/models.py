@@ -1,9 +1,12 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from safedelete.models import SafeDeleteModel
+from safedelete.models import SOFT_DELETE_CASCADE
 
 
-class Company(models.Model):
+class Company(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     name = models.CharField(max_length=255)
     industry = models.CharField(max_length=128, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -30,7 +33,8 @@ class Company(models.Model):
         return self.name
 
 
-class Contact(models.Model):
+class Contact(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
     company = models.ForeignKey(
         Company, on_delete=models.CASCADE, related_name="contacts"
     )
