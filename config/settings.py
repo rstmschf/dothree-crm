@@ -17,9 +17,9 @@ DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
-SUPERUSER_EMAIL = env('SUPERUSER_EMAIL', default='super@user.com')
-SUPERUSER_PASSWORD = env('SUPERUSER_PASSWORD', default='password')
-SUPERUSER_USERNAME = env('SUPERUSER_USERNAME', default='superuser')
+SUPERUSER_EMAIL = env("SUPERUSER_EMAIL", default="super@user.com")
+SUPERUSER_PASSWORD = env("SUPERUSER_PASSWORD", default="password")
+SUPERUSER_USERNAME = env("SUPERUSER_USERNAME", default="superuser")
 
 # Application definition
 
@@ -36,11 +36,9 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "safedelete",
-    "reports",
     "sales",
     "clients",
     "accounts",
-    
 ]
 
 MIDDLEWARE = [
@@ -166,28 +164,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 AI_API_KEY = env("AI_API_KEY")
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
 
-ASGI_APPLICATION = 'config.asgi.application'
+ASGI_APPLICATION = "config.asgi.application"
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('redis', 6379)],
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
         },
     },
 }
 
-TELEGRAM_BOT_TOKEN = env('TELEGRAM_BOT_TOKEN')
-TELEGRAM_BOT_USERNAME = env('TELEGRAM_BOT_USERNAME')
-TELEGRAM_WEBHOOK_SECRET = env('TELEGRAM_WEBHOOK_SECRET')
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME")
+TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET")
