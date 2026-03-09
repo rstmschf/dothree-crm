@@ -5,8 +5,17 @@ A full-stack MVP CRM built to handle the actual chaos of a real-world sales pipe
 ### Key Features
 
 * **Real-Time Everything:** Powered by WebSockets (Django Channels + Redis). When a deal moves or a note is added, the UI updates instantly for everyone.
+
+https://github.com/user-attachments/assets/3e8248cb-479f-4ba2-aeb5-0a6ca7f46f6b
+
+
 * **The "AI Secretary":** Integrated with Groq (openai/gpt-oss-120b, easily swappable for any API). If you’re in a rush and leave a messy note, just tag `@bot`. The AI automatically grabs it and formats it into clean, professional text.
-* **Proactive Telegram Alerts:** Connected to a backend bot. If a manager has a call coming up, they get a ping directly on Telegram. Active reminders are also handled in the React UI via `celery-beat`, but a Telegram ping is much harder to ignore than a browser tab.
+
+https://github.com/user-attachments/assets/12356063-0e4e-44ba-9daa-32dd0df7c0a8
+
+
+* **Proactive Telegram Alerts:** Connected to a backend bot. If a manager has a call coming up, they get a ping directly on Telegram. Active reminders are also handled in the React UI via `celery-beat`, but a Telegram ping is much harder to ignore than a browser tab.<img width="556" height="567" alt="telegram" src="https://github.com/user-attachments/assets/3c8cb0ec-0b27-4f44-8d0b-6af1dfaa9860" />
+
 * **Role-Based Access Control:** Custom permissions. Guests are guests, Reps see their own pipelines, and Managers have full visibility over their data and their subordinates' data.
 * **Soft Deletes:** Implemented `django-safedelete`. "Deleted" deals are safely hidden from the UI, not wiped from the database.
 * **Business Analytics:** Custom dashboards tracking pipeline value, expected revenue, and win rates.
