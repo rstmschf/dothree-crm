@@ -36,3 +36,12 @@ class IsOwnerOrManagerOrAdmin(BasePermission):
             return True
 
         return False
+
+
+class IsNotGuest(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.user
+            and request.user.is_authenticated
+            and request.user.role != "guest"
+        )

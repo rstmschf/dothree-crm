@@ -134,14 +134,15 @@ class Note(SafeDeleteModel):
         blank=True,
         related_name="notes",
     )
-    attachment = models.FileField(upload_to='deal_notes/', blank=True, null=True)
+    attachment = models.FileField(upload_to="deal_notes/", blank=True, null=True)
 
     class Meta:
         ordering = ("-created_at",)
 
     def __str__(self):
         return f"Note on {self.deal.title}: {self.text[:50]}..."
-    
+
+
 class Reminder(SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
     text = models.CharField(max_length=150, blank=True)
@@ -159,24 +160,28 @@ class Reminder(SafeDeleteModel):
         related_name="reminders",
     )
     is_done = models.BooleanField(default=False)
-    contact = models.ForeignKey(Contact, on_delete=models.SET_NULL, related_name="reminders", null = True, blank = True)
+    contact = models.ForeignKey(
+        Contact,
+        on_delete=models.SET_NULL,
+        related_name="reminders",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ("date",)
         indexes = [
             Index(
-                fields=['date'], 
+                fields=["date"],
                 condition=Q(is_done=False, reminded_1h=False),
-                name='idx_active_reminders_1h'
+                name="idx_active_reminders_1h",
             ),
-            
             Index(
-                fields=['date'], 
+                fields=["date"],
                 condition=Q(is_done=False, reminded_5m=False),
-                name='idx_active_reminders_5m'
+                name="idx_active_reminders_5m",
             ),
-            
-            Index(fields=['owner', 'is_done']),
+            Index(fields=["owner", "is_done"]),
         ]
 
     def __str__(self):

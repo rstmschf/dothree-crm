@@ -6,6 +6,7 @@ from groq import Groq
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from .services import send_telegram_message
 
 ai_client = Groq(api_key=settings.AI_API_KEY)
 
@@ -69,7 +70,7 @@ def check_upcoming_reminders():
     channel_layer = get_channel_layer()
 
     time_1h_from_now = now + timedelta(hours=1)
-    if Reminder.objects.all().exists:
+    if Reminder.objects.all().exists():
         reminders_1h = Reminder.objects.filter(
             is_done=False, reminded_1h=False, date__lte=time_1h_from_now, date__gt=now
         )
@@ -89,6 +90,14 @@ def check_upcoming_reminders():
                         },
                     },
                 )
+                if r.owner.telegram_chat_id:
+                    msg = (
+                        f"🔔 Reminder!\n\n"
+                        f"💼 Deal: {r.deal.title}\n"
+                        f"📝 Task: {r.text}\n"
+                        f"⏰ Time: {r.date.strftime('%H:%M')}"
+                    )
+                    send_telegram_message(r.owner.telegram_chat_id, msg)
             r.reminded_1h = True
             r.save(update_fields=["reminded_1h"])
 
@@ -112,6 +121,14 @@ def check_upcoming_reminders():
                         },
                     },
                 )
+                if r.owner.telegram_chat_id:
+                    msg = (
+                        f"🔔 Reminder!\n\n"
+                        f"💼 Deal: {r.deal.title}\n"
+                        f"📝 Task: {r.text}\n"
+                        f"⏰ Time: {r.date.strftime('%H:%M')}"
+                    )
+                    send_telegram_message(r.owner.telegram_chat_id, msg)
             r.reminded_5m = True
             r.save(update_fields=["reminded_5m"])
 
@@ -120,20 +137,33 @@ def check_upcoming_reminders():
 def broadcast_reminder_update(reminder_id, owner_id, action="updated"):
     from .models import Reminder
     from .serializers import ReminderSerializer
+
     channel_layer = get_channel_layer()
 
     def send_payload(payload):
         if owner_id:
-            async_to_sync(channel_layer.group_send)(f'user_{owner_id}', payload)
-        async_to_sync(channel_layer.group_send)('management_group', payload)
+            async_to_sync(channel_layer.group_send)(f"user_{owner_id}", payload)
+        async_to_sync(channel_layer.group_send)("management_group", payload)
 
     if action == "deleted":
-        send_payload({'type': 'send_notification', 'notification_type': 'reminder_deleted', 'message': {'id': reminder_id}})
+        send_payload(
+            {
+                "type": "send_notification",
+                "notification_type": "reminder_deleted",
+                "message": {"id": reminder_id},
+            }
+        )
         return
 
     try:
         reminder = Reminder.objects.get(id=reminder_id)
         data = ReminderSerializer(reminder).data
-        send_payload({'type': 'send_notification', 'notification_type': f'reminder_{action}', 'message': data})
+        send_payload(
+            {
+                "type": "send_notification",
+                "notification_type": f"reminder_{action}",
+                "message": data,
+            }
+        )
     except Reminder.DoesNotExist:
         pass
