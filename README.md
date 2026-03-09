@@ -35,6 +35,10 @@ https://github.com/user-attachments/assets/12356063-0e4e-44ba-9daa-32dd0df7c0a8
 * **Frontend:** Simple React / Tailwind CSS / DaisyUI
 * **Infrastructure:** Fully Dockerized (6 containers: Backend, Frontend/Nginx, Postgres, Redis, Celery Worker, Celery Beat)
 
+### DB structure
+
+[![Dothree CRM Database Schema](https://github.com/user-attachments/assets/5cbcb96a-d29b-4190-b430-b910aaba4747)](https://dbdocs.io/kshevketsheva/dbstructure)
+
 ---
 
 ## Local Development
