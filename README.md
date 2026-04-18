@@ -2,8 +2,7 @@
 
 A CRM built around a real sales pipeline. The goal was to cover the workflows a sales team actually uses daily.
 
-<img width="1917" height="916" alt="overview" src="https://github.com/user-attachments/assets/ee72e699-65ef-42e3-98bd-bd4b19288d2c" />
-
+<img width="1917" height="916" alt="overview" src="https://github.com/user-attachments/assets/3bbbad1c-53b0-49d0-9b95-2ab94396d480" />
 ### Stack
 
 **Backend:** Python / Django / Django REST Framework  
@@ -19,24 +18,23 @@ A CRM built around a real sales pipeline. The goal was to cover the workflows a 
 Deal and note changes broadcast instantly to all connected clients via WebSockets (Django Channels + Redis). No polling.
 
 
-https://github.com/user-attachments/assets/cdb9788e-ac8b-457a-a3a7-6bd9364b8127
+https://github.com/user-attachments/assets/77a0c11c-ae03-4510-bfe1-04bc08fc2758
 
 
-https://github.com/user-attachments/assets/94cd918c-2553-4f7c-93ca-2a7930f6474b
-
+https://github.com/user-attachments/assets/57abdcde-78eb-487b-a82b-e6be710a4e6f
 
 
 **AI note formatting**  
 Sales reps often leave rough notes mid-call. Enabling trigger on any note and a background Celery task sends it to Groq (openai/gpt-oss-120b) for cleanup. The original text is preserved and accessible. Model is swappable via one config change.
 
 
-https://github.com/user-attachments/assets/f64e428d-2397-454c-a7d5-815d3dc5dae1
+https://github.com/user-attachments/assets/aa7bbd4b-9f9b-41fb-b44f-1119a4bbc60c
 
 
 **Telegram alerts**  
 Upcoming calls send a Telegram message (harder to miss than a browser tab) directly to the manager. Handled by Celery Beat on a schedule.
 
-<img width="556" height="567" alt="telegram" src="https://github.com/user-attachments/assets/86fb0515-e01a-48aa-811b-4070290125aa" />
+<img width="556" height="567" alt="telegram" src="https://github.com/user-attachments/assets/f8c7597c-4d66-4504-bcec-e93b3f06a532" />
 
 **Role-based permissions**  
 Three roles: Guest, Sales Rep, Manager. Reps see only their own deals. Managers see everything, including their team's pipelines. Enforced at the API level.
@@ -60,7 +58,9 @@ Auto-generated Swagger/OpenAPI docs at `/api/docs/`.
 
 ### Database
 
-[![dbstructure](https://github.com/user-attachments/assets/89294ba7-da28-460a-8041-26a4d924ffb1)](https://dbdiagram.io/d/dbstructure-69af37fdcf54053b6f43b8bd)
+
+[![dbstructure](https://github.com/user-attachments/assets/4cde957b-c80c-4f68-bf9e-7d28497b17d9)](https://dbdiagram.io/d/dbstructure-69af37fdcf54053b6f43b8bd)
+
 
 ---
 
